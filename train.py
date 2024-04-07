@@ -6,11 +6,13 @@ import numpy as np
 import random
 import yaml
 from utils import str2bool
+from sklearn.model_selection import train_test_split
 
 from networks import networks
 import losses
-
-import ml_collections
+from dataset import CustomDataset
+from torch.utils.data import DataLoader
+from collections import OrderedDict
 
 
 NETWORKS = networks.__all__
@@ -41,6 +43,8 @@ def parse_args():
                         + 'default: TransUnet')
     parser.add_argument('--input_channels', default=1, type=int,
                         help='input channels')
+    parser.add_argument('--patch_size', default=16, type=int,
+                        help='input patch size')
     parser.add_argument('--num_classes', default=8, type=int,
                         help='number of classes')
     parser.add_argument('--width', default=256, type=int, 
@@ -95,19 +99,61 @@ def train():
     config = vars(parse_args())
     output_config(config)
     
-    config['name'] = f'{config['dataset']}_{config['network']}_bs{config['batch_size']}'
+    ## Specify model name
+    config['name'] = f"{config['dataset']}_{config['network']}_bs{config['batch_size']}_ps{config['patch_size']}"
     if config['type'] == 'Transformer':
-        config['name'] += f'_{config['n_skip']}'
+        config['name'] += f"_skip{config['n_skip']}"
     elif config['type'] == 'Nested':
         if config['deep_supervision']:
             config['name'] += '_wDS'
         else:
             config['name'] += '_woDS'
-    config['name'] += f'_{config['epochs']}_{config['width']}'
-
-    print(config['name'])
-            
+    config['name'] += f"_epo{config['epochs']}_hw{config['width']}"
     
+    ## Save config
+    print(f"=> Initialize model: {config['name']}")
+    model_path = f"outputs/{config['name']}"
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
+        with open(f"{model_path}/config.yml", "w") as f:
+            yaml.dump(config, f)
+    
+    
+    # Data Loading
+    image_paths = glob(f"data/{config['dataset']}/p_images/*{config['ext']}")
+    label_paths = glob(f"data/{config['dataset']}/p_labels/*{config['ext']}")
+    
+    train_image_paths, val_image_paths, train_label_paths, val_label_paths = train_test_split(image_paths, label_paths, test_size=0.2, random_state=41)
+    train_ds = CustomDataset(train_image_paths, train_label_paths)
+    val_ds = CustomDataset(val_image_paths, val_label_paths)
+    
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=config['batch_size'],
+        shuffle=True,
+        drop_last=True)
+    
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=config['batch_size'],
+        shuffle=False,
+        drop_last=False)
+    
+    # Training loop
+    log = OrderedDict([
+        ('epoch', []),
+        ('lr', []),
+        ('loss', []),
+        ('iou', []),
+        ('val_loss', []),
+        ('val_iou', []),
+    ])
+    
+    best_iou = 0
+    best_dice_score = 0
+    for epoch in range(config['epochs']):
+        print(f"Epoch: {epoch}/{config['epochs']}")
+
     
 if __name__ == '__main__':
     train()
