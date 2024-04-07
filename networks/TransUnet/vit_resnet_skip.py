@@ -113,9 +113,9 @@ class PreActBottleneck(nn.Module):
             self.gn_proj.weight.copy_(proj_gn_weight.view(-1))
             self.gn_proj.bias.copy_(proj_gn_bias.view(-1))
 
+# Implementation of Pre-activation (v2) ResNet mode
 class ResNetV2(nn.Module):
-    # Implementation of Pre-activation (v2) ResNet mode
-
+    
     def __init__(self, block_units, width_factor):
         super().__init__()
         width = int(64 * width_factor)

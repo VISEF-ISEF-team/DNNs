@@ -1,5 +1,5 @@
 base_lr: 0.01
-batch_size: 16
+batch_size: 3
 dataset: imagechd
 deep_supervision: false
 early_stopping: -1
@@ -7,23 +7,23 @@ epochs: 15
 ext: .npy
 factor: 0.1
 gamma: 0.6666666666666666
-height: 256
+height: 512
 input_channels: 1
 loss: Dice cross entropy
 milestones: 1,2
 min_lr: 1.0e-05
 momentum: 0.9
 n_gpu: 1
-n_skip: 3
-name: imagechd_TransUnet_bs16_ps16_skip3_epo15_hw256
+name: imagechd_TransUnet_bs3_ps16_R50-ViT-B_16_epo15_hw512
 nesterov: false
 network: TransUnet
 num_classes: 8
-optmizer: Adam
+optimizer: Adam
 patch_size: 16
 patience: 2
 scheduler: CosineAnnealingLR
 seed: 1234
 type: Transformer
+vit_name: R50-ViT-B_16
 weight_decay: 0.0001
-width: 256
+width: 512

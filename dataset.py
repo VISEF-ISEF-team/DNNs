@@ -40,7 +40,4 @@ class CustomDataset(Dataset):
         image = np.load(self.image_paths[index]) / 255.0
         label = np.load(self.label_paths[index])
         
-        return {
-            'image': image,
-            'label': label
-        }
+        return image, label
