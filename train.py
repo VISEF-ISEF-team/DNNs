@@ -9,8 +9,9 @@ from utils import str2bool
 from collections import OrderedDict
 from sklearn.model_selection import train_test_split
 
-from trainer import trainer
+from trainer import trainer, validate
 from dataset import CustomDataset
+import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from torch.nn.modules.loss import CrossEntropyLoss
@@ -33,9 +34,9 @@ def parse_args():
     # Training pipeline
     parser.add_argument('--name', default=None, 
                         help='model name: (default: arch+timestamp)')
-    parser.add_argument('--epochs', default=15, type=int, metavar='N',
+    parser.add_argument('--epochs', default=30, type=int, metavar='N',
                         help='number of epochs for training')
-    parser.add_argument('--batch_size', default=3, type=int, metavar='N',
+    parser.add_argument('--batch_size', default=12, type=int, metavar='N',
                         help='mini-batch size')
     parser.add_argument('--seed', type=int, default=1234, help='random seed')
     parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
@@ -55,15 +56,15 @@ def parse_args():
                         help='input channels')
     parser.add_argument('--patch_size', default=16, type=int,
                         help='input patch size')
-    parser.add_argument('--num_classes', default=8, type=int,
+    parser.add_argument('--num_classes', default=9, type=int,
                         help='number of classes')
-    parser.add_argument('--width', default=512, type=int, 
+    parser.add_argument('--width', default=128, type=int, 
                         help='input image width')
-    parser.add_argument('--height', default=512, type=int,
+    parser.add_argument('--height', default=128, type=int,
                         help='input image height')
     
     # Criterion
-    parser.add_argument('--loss', default='Dice cross entropy', choices=LOSSES)
+    parser.add_argument('--loss', default='Dice iou cross entropy', choices=LOSSES)
     
     # Dataset
     parser.add_argument('--dataset', default='imagechd', help='dataset name')
@@ -104,9 +105,8 @@ def output_config(config):
         print(f'{key}: {config[key]}')
     print('-' * 20)   
     
-def train():
+def train(config):
     # Process the config
-    config = parse_args()
     config_dict = vars(config)
     print(config.network)
     
@@ -136,43 +136,45 @@ def train():
             yaml.dump(config_dict, f)
     
     # Data Loading
-    image_paths = glob(f"data/{config.dataset}/p_images/*{config.ext}")
-    label_paths = glob(f"data/{config.dataset}/p_labels/*{config.ext}")
+    image_paths = glob(f"data/{config.dataset}/p_images/*{config.ext}")[:1000]
+    label_paths = glob(f"data/{config.dataset}/p_labels/*{config.ext}")[:1000]
     
     train_image_paths, val_image_paths, train_label_paths, val_label_paths = train_test_split(image_paths, label_paths, test_size=0.2, random_state=41)
-    train_ds = CustomDataset(train_image_paths, train_label_paths)
-    val_ds = CustomDataset(val_image_paths, val_label_paths)
+    train_ds = CustomDataset(train_image_paths, train_label_paths, img_size=config.width)
+    val_ds = CustomDataset(val_image_paths, val_label_paths, img_size=config.width)
     
     train_loader = DataLoader(
         train_ds,
         batch_size=config.batch_size,
         shuffle=True,
-        drop_last=True)
+        drop_last=True
+    )
     
     val_loader = DataLoader(
         val_ds,
         batch_size=config.batch_size,
         shuffle=False,
-        drop_last=False)
-    
-    # Logging
+        drop_last=False
+    )
+        
+    # Loggingc
     log = OrderedDict([
-        ('epoch', []),
-        ('lr', []),
+        ('epoch', []),                                          # 0
+        ('lr', []),                                             # 1
         
-        ('train_ce_loss', []),
-        ('train_dice_loss', []),
-        ('train_dice_score', []),
-        ('train_dice_class_wise', []),
-        ('train_iou', []),
-        ('train_dice_ce_loss', []),
+        ('Train loss', []),                                     # 2
+        ('Train ce loss', []),                                  # 3
+        ('Train dice score', []),                               # 4
+        ('Train dice loss', []),                                # 5
+        ('Train iou score', []),                                # 6
+        ('Train iou loss', []),                                 # 7
         
-        ('val_ce_loss', []),
-        ('val_dice_loss', []),
-        ('val_dice_score', []),
-        ('val_dice_class_wise', []),
-        ('val_iou', []),
-        ('val_dice_ce_loss', []),
+        ('Val loss', []),                                       # 8
+        ('Val ce loss', []),                                    # 9
+        ('Val dice score', []),                                 # 10
+        ('Val dice loss', []),                                  # 11
+        ('Val iou score', []),                                  # 12
+        ('Val iou loss', [])                                    # 13
     ])
     
     # Model
@@ -211,12 +213,38 @@ def train():
     best_iou = 0
     best_dice_score = 0
     for epoch in range(config.epochs):
-        print(f"Epoch: {epoch}/{config.epochs}")
+        print(f"Epoch: {epoch+1}/{config.epochs}")
         train_log = trainer(config, train_loader, optimizer, model, ce, dice, iou)
+        val_log = validate(config, val_loader, model, ce, dice, iou)
         
-    
-
+        print(f"Train loss: {train_log['loss']} - Train ce loss: {train_log['ce_loss']} - Train dice score: {train_log['dice_score']} - Train dice loss: {train_log['dice_loss']} - Train iou Score: {train_log['iou_score']} - Train iou loss: {train_log['iou_loss']}")
+        print(f"Val loss: {val_log['loss']} - Val ce loss: {val_log['ce_loss']} - Val dice score: {val_log['dice_score']} - Val dice loss: {val_log['dice_loss']} - Val iou Score: {val_log['iou_score']} - Val iou loss: {val_log['iou_loss']}")
+        
+        log['epoch'].append(epoch)
+        log['lr'].append(config.base_lr)
+        
+        log['Train loss'].append(train_log['loss'])
+        log['Train ce loss'].append(train_log['ce_loss'])
+        log['Train dice score'].append(train_log['dice_score'])
+        log['Train dice loss'].append(train_log['dice_loss'])
+        log['Train iou score'].append(train_log['iou_score'])
+        log['Train iou loss'].append(train_log['iou_loss']) 
+        
+        log['Val loss'].append(val_log['loss'])
+        log['Val ce loss'].append(val_log['ce_loss'])
+        log['Val dice score'].append(val_log['dice_score'])
+        log['Val dice loss'].append(val_log['dice_loss'])
+        log['Val iou score'].append(val_log['iou_score'])
+        log['Val iou loss'].append(val_log['iou_loss']) 
+        
+        pd.DataFrame(log).to_csv(f'outputs/{config.name}/epo_log.csv', index=False)
+        
+        if train_log['iou_score'] > best_iou and train_log['dice_score'] > best_dice_score:
+            best_iou = train_log['iou_score']
+            best_dice_score = train_log['dice_score']
+            torch.save(model, f"outputs/{config.name}/model.pth")
     
 if __name__ == '__main__':
-    train()
+    config = parse_args()
+    train(config)
     

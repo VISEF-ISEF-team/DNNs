@@ -1,9 +1,10 @@
 import os
 from torch.utils.data import Dataset
 import numpy as np
+from scipy.ndimage import zoom
 
 class CustomDataset(Dataset):
-    def __init__(self, image_paths, label_paths, image_ext='.npy', label_ext='.npy'):
+    def __init__(self, image_paths, label_paths, img_size, image_ext='.npy', label_ext='.npy'):
         '''
         Args:
             image_paths: Image file paths.
@@ -15,13 +16,13 @@ class CustomDataset(Dataset):
         Note:
             Make sure to process the data into this structures
             <dataset name>
-            ├── images
+            ├── p_images
             |   ├── 0001_0001.npy
             │   ├── 0001_0002.npy
             │   ├── 0001_0003.npy
             │   ├── ...
             |
-            └── labels
+            └── p_labels
                 ├── 0001_0001.npy
                 ├── 0001_0002.npy
                 ├── 0001_0003.npy
@@ -29,6 +30,7 @@ class CustomDataset(Dataset):
         '''
         self.image_paths = image_paths
         self.label_paths = label_paths
+        self.img_size = img_size
         self.image_ext = image_ext
         self.label_ext = label_ext
         self.length = len(image_paths)
@@ -37,7 +39,12 @@ class CustomDataset(Dataset):
         return self.length
     
     def __getitem__(self, index):
-        image = np.load(self.image_paths[index]) / 255.0
+        image = np.load(self.image_paths[index])
         label = np.load(self.label_paths[index])
+        
+        x, y = image.shape
+        if x != self.img_size and y != self.img_size:
+            image = zoom(image, (self.img_size / x, self.img_size / y), order=0)
+            label = zoom(label, (self.img_size / x, self.img_size / y), order=0)
         
         return image, label

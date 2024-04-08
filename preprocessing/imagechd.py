@@ -14,7 +14,11 @@ def save(ds_dir, folder, data_path):
     else: vol = sitk.GetArrayFromImage(sitk.ReadImage(data_path, sitk.sitkFloat32))
     for index in range(vol.shape[0]):
         path_to_save = pj(ds_dir, 'p_' + folder, f'{data_path[-11:-7]}_{index+1:04d}.npy')
-        if not os.path.exists(path_to_save): np.save(path_to_save, vol[index])
+        if folder == 'images':
+            norm_vol = vol[index] / np.max(vol[index])
+            if not os.path.exists(path_to_save): np.save(path_to_save, norm_vol)
+        else: 
+            if not os.path.exists(path_to_save): np.save(path_to_save, vol[index])
         
 
 def run(ds_dir, ext='.nii.gz', start=None, end=None):
@@ -33,5 +37,5 @@ def run(ds_dir, ext='.nii.gz', start=None, end=None):
     
 run(
     ds_dir='../data/imagechd',
-    start=0, end=40
+    start=0, end=10
 )

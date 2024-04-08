@@ -164,8 +164,6 @@ class Embeddings(nn.Module):
         x = x.flatten(2)
         x = x.transpose(-1, -2)  # (B, n_patches, hidden)
         
-        print(f"\n {x.size(), self.position_embeddings.size()} \n")
-
         embeddings = x + self.position_embeddings
         embeddings = self.dropout(embeddings)
         return embeddings, features

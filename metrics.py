@@ -25,7 +25,7 @@ class IOU(nn.Module):
     def forward(self, logits, target):
         target = target.unsqueeze(0)
         ious = []
-        for cls in range(self.num_classes):
+        for cls in range(1, self.num_classes):
             pred_mask = (logits.argmax(dim=1) == cls)
             target_mask = (target == cls)
                             
@@ -36,7 +36,7 @@ class IOU(nn.Module):
             else: iou = (intersection / union).item()
             ious.append(iou)
         
-        mean_iou = sum(ious) / self.num_classes
+        mean_iou = sum(ious) / (self.num_classes - 1)
         return torch.tensor(mean_iou), ious
 
 class Dice(nn.Module):
@@ -79,21 +79,27 @@ class Dice(nn.Module):
 
     def forward(self, inputs, target, weight=None):
         target = self._one_hot_encoder(target)
-                
-        if weight is None: weight = [1] * self.num_classes
-        assert inputs.size() == target.size(), 'predict {} & target {} shape do not match'.format(inputs.size(), target.size())
+        
+        if weight is None:
+            weight = [1] * self.num_classes
+        
+        assert inputs.size() == target.size(), 'Predict {} & Target {} shape do not match'.format(inputs.size(), target.size())
+        
         class_wise_dice_score = []
         class_wise_dice_loss = []
         LOSS = 0.0
         DICE = 0.0
-        for i in range(0, self.num_classes):
+        
+        for i in range(1, self.num_classes):  # Start from 1 to exclude background class (class 0)
             dice, loss = self._dice_loss(inputs[:, i], target[:, i])            
             class_wise_dice_score.append(dice.item())
             class_wise_dice_loss.append(loss.item())
             DICE += dice
             LOSS += loss
             
-        return DICE / self.num_classes, LOSS / self.num_classes, class_wise_dice_score, class_wise_dice_loss
+        num_valid_classes = self.num_classes - 1  # Exclude background class
+        
+        return DICE / num_valid_classes, LOSS / num_valid_classes, class_wise_dice_score, class_wise_dice_loss
     
     
     
