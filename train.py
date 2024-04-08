@@ -205,14 +205,16 @@ def train():
     # Criterion
     ce = CrossEntropyLoss()
     dice = Dice(config.num_classes)
+    iou = IOU(config.num_classes)
     
     # Training loop
     best_iou = 0
     best_dice_score = 0
     for epoch in range(config.epochs):
         print(f"Epoch: {epoch}/{config.epochs}")
-        train_log = trainer(config, train_loader, optimizer, model, ce, dice)
-        return 
+        train_log = trainer(config, train_loader, optimizer, model, ce, dice, iou)
+        
+    
 
     
 if __name__ == '__main__':
