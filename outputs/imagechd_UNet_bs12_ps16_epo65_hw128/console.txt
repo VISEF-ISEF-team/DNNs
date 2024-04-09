@@ -1,0 +1,360 @@
+ python.exe train.py --epochs 65
+UNet
+--------------------
+name: imagechd_UNet_bs12_ps16_epo65_hw128
+epochs: 65
+batch_size: 12
+seed: 1234
+n_gpu: 1
+type: Normal
+vit_name: None
+deep_supervision: False
+network: UNet
+input_channels: 1
+patch_size: 16
+num_classes: 8
+width: 128
+height: 128
+loss: Dice iou cross entropy
+dataset: imagechd
+ext: .npy
+optimizer: Adam
+base_lr: 0.01
+momentum: 0.9
+weight_decay: 0.0001
+nesterov: False
+scheduler: CosineAnnealingLR
+min_lr: 1e-05
+factor: 0.1
+patience: 2
+milestones: 1,2
+gamma: 0.6666666666666666
+early_stopping: -1
+--------------------
+=> Initialize output: imagechd_UNet_bs12_ps16_epo65_hw128
+=> Initialize model: UNet
+Epoch: 1/65
+66it [00:20,  3.28it/s]                                                                                         | 0/66 [00:00<?, ?it/s]
+  0%|                                                                                                           | 0/66 [00:20<?, ?it/s]
+Train loss: 0.8666974586067777 - Train ce loss: 0.4751097286740939 - Train dice score: 0.05074242832470742 - Train dice loss: 0.9492576077128901 - Train iou Score: 0.020068869360164335 - Train iou loss: 0.9799311306398356
+Val loss: 0.8260066333939048 - Val ce loss: 0.3356920822578318 - Val dice score: 0.06033591619309257 - Val dice loss: 0.9396641219363493 - Val iou Score: 0.042493597056497544 - Val iou loss: 0.9575064029435024
+Epoch: 2/65
+66it [00:19,  3.36it/s]                                                                                         | 0/66 [00:00<?, ?it/s]
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.8259965488404939 - Train ce loss: 0.3488072021441026 - Train dice score: 0.06851944090290503 - Train dice loss: 0.9314806027845903 - Train iou Score: 0.040892877404324034 - Train iou loss: 0.959107122595676
+Val loss: 0.7877259324578678 - Val ce loss: 0.2710561392938389 - Val dice score: 0.09331743857439827 - Val dice loss: 0.9066826245364021 - Val iou Score: 0.07289590303073912 - Val iou loss: 0.9271040969692609
+Epoch: 3/65
+66it [00:19,  3.41it/s]                                                                                         | 0/66 [00:00<?, ?it/s]
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.7837657874280756 - Train ce loss: 0.2938885790380565 - Train dice score: 0.11726329063601566 - Train dice loss: 0.8827367587523027 - Train iou Score: 0.07026661163421744 - Train iou loss: 0.9297333883657826
+Val loss: 0.7799645557123072 - Val ce loss: 0.2692081393564449 - Val dice score: 0.11495660157764659 - Val dice loss: 0.8850434422492981 - Val iou Score: 0.06973615847527981 - Val iou loss: 0.9302638415247202
+Epoch: 4/65
+66it [00:23,  2.84it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:23<?, ?it/s]
+Train loss: 0.7387333990949573 - Train ce loss: 0.2748065042224797 - Train dice score: 0.1989444573268746 - Train dice loss: 0.8010555912147869 - Train iou Score: 0.09162536665627902 - Train iou loss: 0.9083746333437209
+Val loss: 0.7178850068765528 - Val ce loss: 0.24321037530899048 - Val dice score: 0.22000754668432124 - Val dice loss: 0.7799925067845512 - Val iou Score: 0.1068852090221994 - Val iou loss: 0.8931147909778006
+Epoch: 5/65
+66it [00:21,  3.06it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:21<?, ?it/s]
+Train loss: 0.6864492432637648 - Train ce loss: 0.25303808464245364 - Train dice score: 0.274384262435364 - Train dice loss: 0.725615789492925 - Train iou Score: 0.13601174465183055 - Train iou loss: 0.8639882553481695
+Val loss: 0.6724226615008186 - Val ce loss: 0.21909379783798666 - Val dice score: 0.272876798230059 - Val dice loss: 0.7271232359549579 - Val iou Score: 0.15561350763720624 - Val iou loss: 0.8443864923627937
+Epoch: 6/65
+66it [00:19,  3.41it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.6423536250085542 - Train ce loss: 0.23085992670420444 - Train dice score: 0.3173361551581007 - Train dice loss: 0.6826638895453829 - Train iou Score: 0.19220983344271328 - Train iou loss: 0.8077901665572867
+Val loss: 0.6267169258173775 - Val ce loss: 0.20394392662188587 - Val dice score: 0.30730993256849404 - Val dice loss: 0.6926901200238396 - Val iou Score: 0.22786981875405593 - Val iou loss: 0.7721301812459441
+Epoch: 7/65
+66it [00:18,  3.51it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.5938178933028019 - Train ce loss: 0.2077595559936581 - Train dice score: 0.3487159458525253 - Train dice loss: 0.6512841049468878 - Train iou Score: 0.27061918874581653 - Train iou loss: 0.7293808112541834
+Val loss: 0.5994613486177781 - Val ce loss: 0.19222021015251384 - Val dice score: 0.31935712388333154 - Val dice loss: 0.6806429133695715 - Val iou Score: 0.2780996845925556 - Val iou loss: 0.7219003154074445
+Epoch: 8/65
+66it [00:18,  3.49it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.556723000425281 - Train ce loss: 0.20059644363143228 - Train dice score: 0.40224316851659253 - Train dice loss: 0.597756868058985 - Train iou Score: 0.3062476113890157 - Train iou loss: 0.6937523886109843
+Val loss: 0.5585878140786115 - Val ce loss: 0.19019420182003693 - Val dice score: 0.4018953609115937 - Val dice loss: 0.598104690804201 - Val iou Score: 0.2967322828138576 - Val iou loss: 0.7032677171861424
+Epoch: 9/65
+66it [00:19,  3.43it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.4978171442494248 - Train ce loss: 0.19527940677874017 - Train dice score: 0.4808533182649901 - Train dice loss: 0.5191467268900438 - Train iou Score: 0.3722436021674763 - Train iou loss: 0.6277563978325237
+Val loss: 0.5032545030117035 - Val ce loss: 0.1772193531779682 - Val dice score: 0.4688267821774763 - Val dice loss: 0.5311732520075405 - Val iou Score: 0.3616466934190077 - Val iou loss: 0.6383533065809923
+Epoch: 10/65
+66it [00:18,  3.57it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.4581634397759582 - Train ce loss: 0.1938294287432324 - Train dice score: 0.5347227305173874 - Train dice loss: 0.4652773132829955 - Train iou Score: 0.4167834468411677 - Train iou loss: 0.5832165531588324
+Val loss: 0.48039646183743195 - Val ce loss: 0.1790372676709119 - Val dice score: 0.5113641575855368 - Val dice loss: 0.4886358906241024 - Val iou Score: 0.377163378193098 - Val iou loss: 0.622836621806902
+Epoch: 11/65
+66it [00:19,  3.40it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.4544456790794026 - Train ce loss: 0.19547101313417609 - Train dice score: 0.5558139273163044 - Train dice loss: 0.4441861194191557 - Train iou Score: 0.40580745120391704 - Train iou loss: 0.594192548796083
+Val loss: 0.49799272418022156 - Val ce loss: 0.19555764689165003 - Val dice score: 0.5366644263267517 - Val dice loss: 0.46333562451250415 - Val iou Score: 0.31613265591509204 - Val iou loss: 0.683867344084908
+Epoch: 12/65
+66it [00:19,  3.40it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.4010988555171273 - Train ce loss: 0.19661672368194116 - Train dice score: 0.6504546187140725 - Train dice loss: 0.34954543818127026 - Train iou Score: 0.44510668403271475 - Train iou loss: 0.5548933159672853
+Val loss: 0.411709783708348 - Val ce loss: 0.1834558160866008 - Val dice score: 0.6078815065762576 - Val dice loss: 0.39211854338645935 - Val iou Score: 0.4545720018008176 - Val iou loss: 0.5454279981991824
+Epoch: 13/65
+66it [00:18,  3.54it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.37184609879146924 - Train ce loss: 0.19775030174941727 - Train dice score: 0.6937150901014154 - Train dice loss: 0.3062849582144708 - Train iou Score: 0.47554488570401166 - Train iou loss: 0.5244551142959883
+Val loss: 0.39802078113836403 - Val ce loss: 0.1790435989113415 - Val dice score: 0.6527856921448427 - Val dice loss: 0.34721434729940753 - Val iou Score: 0.4416842074955211 - Val iou loss: 0.5583157925044789
+Epoch: 14/65
+66it [00:18,  3.56it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.33591592357014166 - Train ce loss: 0.18958354052720647 - Train dice score: 0.7292695352525422 - Train dice loss: 0.27073051283756894 - Train iou Score: 0.5257324847308072 - Train iou loss: 0.4742675152691928
+Val loss: 0.36080972937976613 - Val ce loss: 0.17290197488139658 - Val dice score: 0.6822385647717644 - Val dice loss: 0.3177614755490247 - Val iou Score: 0.5021881618920494 - Val iou loss: 0.49781183810795054
+Epoch: 15/65
+66it [00:18,  3.57it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.31313167106021533 - Train ce loss: 0.1846196110727209 - Train dice score: 0.7508163984977838 - Train dice loss: 0.24918365139852872 - Train iou Score: 0.5586642907424406 - Train iou loss: 0.4413357092575593
+Val loss: 0.3541940345483668 - Val ce loss: 0.18275148070910396 - Val dice score: 0.7011620104312897 - Val dice loss: 0.298838025506805 - Val iou Score: 0.5047286915428498 - Val iou loss: 0.4952713084571502
+Epoch: 16/65
+66it [00:19,  3.38it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.29363728856498544 - Train ce loss: 0.18189673949823235 - Train dice score: 0.7706920784531217 - Train dice loss: 0.2293079560904792 - Train iou Score: 0.5861631135145823 - Train iou loss: 0.41383688648541767
+Val loss: 0.3296571277520236 - Val ce loss: 0.16703588778481765 - Val dice score: 0.7093620317823747 - Val dice loss: 0.2906380129211089 - Val iou Score: 0.5500131486093297 - Val iou loss: 0.44998685139067035
+Epoch: 17/65
+66it [00:18,  3.59it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.29872139069167053 - Train ce loss: 0.18289543010971762 - Train dice score: 0.7643671658906069 - Train dice loss: 0.23563286978186984 - Train iou Score: 0.5802771164612337 - Train iou loss: 0.41972288353876636
+Val loss: 0.33088209348566394 - Val ce loss: 0.17269947423654444 - Val dice score: 0.7091666267198675 - Val dice loss: 0.29083341009476604 - Val iou Score: 0.5499779240173452 - Val iou loss: 0.4500220759826548
+Epoch: 18/65
+66it [00:18,  3.63it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.2760284755266074 - Train ce loss: 0.17724026536399667 - Train dice score: 0.7847218459302728 - Train dice loss: 0.21527819606390866 - Train iou Score: 0.6138271504279339 - Train iou loss: 0.3861728495720661
+Val loss: 0.3241242959218867 - Val ce loss: 0.1718965462025474 - Val dice score: 0.7311128009768093 - Val dice loss: 0.2688872332082075 - Val iou Score: 0.5445247906095841 - Val iou loss: 0.45547520939041586
+Epoch: 19/65
+66it [00:19,  3.44it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:19<?, ?it/s]
+Train loss: 0.2764753033265923 - Train ce loss: 0.18121467553304904 - Train dice score: 0.7845119278539311 - Train dice loss: 0.21548811052784775 - Train iou Score: 0.6149072023955259 - Train iou loss: 0.3850927976044742
+Val loss: 0.31359179054989533 - Val ce loss: 0.1591818464152953 - Val dice score: 0.7162280082702637 - Val dice loss: 0.2837720513343811 - Val iou Score: 0.5793835117536432 - Val iou loss: 0.4206164882463567
+Epoch: 20/65
+66it [00:18,  3.51it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.23911790730375232 - Train ce loss: 0.16910361058332704 - Train dice score: 0.8191308975219727 - Train dice loss: 0.18086913871494206 - Train iou Score: 0.667626191720818 - Train iou loss: 0.33237380827918195
+Val loss: 0.30061975472113667 - Val ce loss: 0.1673898482147385 - Val dice score: 0.7434725165367126 - Val dice loss: 0.2565275307963876 - Val iou Score: 0.5886730884804445 - Val iou loss: 0.41132691151955547
+Epoch: 21/65
+66it [00:17,  3.81it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.2467354748285178 - Train ce loss: 0.17244601847999025 - Train dice score: 0.8113997705055006 - Train dice loss: 0.18860027532685886 - Train iou Score: 0.6579846089536493 - Train iou loss: 0.34201539104635065
+Val loss: 0.29530495229889364 - Val ce loss: 0.1619043345837032 - Val dice score: 0.7401367425918579 - Val dice loss: 0.25986330912393685 - Val iou Score: 0.6025531081592336 - Val iou loss: 0.3974468918407665
+Epoch: 22/65
+66it [00:17,  3.67it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.24673500047488647 - Train ce loss: 0.17211854807806737 - Train dice score: 0.8135226919795527 - Train dice loss: 0.18647734527335022 - Train iou Score: 0.6556991302605831 - Train iou loss: 0.34430086973941687
+Val loss: 0.2796287615509594 - Val ce loss: 0.15825632302200093 - Val dice score: 0.7687612211003023 - Val dice loss: 0.23123881396125345 - Val iou Score: 0.6112950847429388 - Val iou loss: 0.38870491525706125
+Epoch: 23/65
+66it [00:18,  3.61it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.23129973966966977 - Train ce loss: 0.1703380751564647 - Train dice score: 0.8276313769094872 - Train dice loss: 0.17236866474603163 - Train iou Score: 0.6792883597540132 - Train iou loss: 0.3207116402459867
+Val loss: 0.29321447979001436 - Val ce loss: 0.16527877528877818 - Val dice score: 0.742591959588668 - Val dice loss: 0.2574080789790434 - Val iou Score: 0.6070112761329202 - Val iou loss: 0.3929887238670798
+Epoch: 24/65
+66it [00:18,  3.57it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.24606393548575314 - Train ce loss: 0.17314908529321352 - Train dice score: 0.8065882749629744 - Train dice loss: 0.19341177640087676 - Train iou Score: 0.6648264865983616 - Train iou loss: 0.33517351340163837
+Val loss: 0.29872576629414277 - Val ce loss: 0.15712551728767507 - Val dice score: 0.7371923502753762 - Val dice loss: 0.2628076812800239 - Val iou Score: 0.5945560371174532 - Val iou loss: 0.4054439628825468
+Epoch: 25/65
+66it [00:18,  3.56it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.22011427174914966 - Train ce loss: 0.16660097354289258 - Train dice score: 0.8353081661643404 - Train dice loss: 0.16469187571695357 - Train iou Score: 0.6977066903403311 - Train iou loss: 0.3022933096596689
+Val loss: 0.2646748853080413 - Val ce loss: 0.1559415323769345 - Val dice score: 0.785412031061509 - Val dice loss: 0.2145880004938911 - Val iou Score: 0.63087156940909 - Val iou loss: 0.36912843059091005
+Epoch: 26/65
+66it [00:18,  3.48it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.21682016348296945 - Train ce loss: 0.16732968694784425 - Train dice score: 0.8397165175640222 - Train dice loss: 0.16028353120341446 - Train iou Score: 0.7018979787826538 - Train iou loss: 0.2981020212173462
+Val loss: 0.26965975498451905 - Val ce loss: 0.15036296099424362 - Val dice score: 0.76872899777749 - Val dice loss: 0.23127104517291575 - Val iou Score: 0.6323031450019163 - Val iou loss: 0.3676968549980837
+Epoch: 27/65
+66it [00:18,  3.66it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.23617136771931793 - Train ce loss: 0.17159051764192004 - Train dice score: 0.8221906983491146 - Train dice loss: 0.1778093483863455 - Train iou Score: 0.6731762010039706 - Train iou loss: 0.3268237989960295
+Val loss: 0.2640184155281852 - Val ce loss: 0.1553744467742303 - Val dice score: 0.7704528429928947 - Val dice loss: 0.22954719951924155 - Val iou Score: 0.6471883847432978 - Val iou loss: 0.3528116152567022
+Epoch: 28/65
+66it [00:17,  3.76it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.20660223947329956 - Train ce loss: 0.16345461536989067 - Train dice score: 0.8492086764537927 - Train dice loss: 0.15079136531461368 - Train iou Score: 0.7160130883708145 - Train iou loss: 0.28398691162918555
+Val loss: 0.2408546621308607 - Val ce loss: 0.15104463871787577 - Val dice score: 0.797052306287429 - Val dice loss: 0.20294774323701859 - Val iou Score: 0.6763334151576547 - Val iou loss: 0.3236665848423453
+Epoch: 29/65
+66it [00:17,  3.74it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.21132925694639032 - Train ce loss: 0.1641853740721038 - Train dice score: 0.8409162398540613 - Train dice loss: 0.15908380620407336 - Train iou Score: 0.7128533603567065 - Train iou loss: 0.28714663964329346
+Val loss: 0.26548537787269144 - Val ce loss: 0.16259514145991383 - Val dice score: 0.7850022000425002 - Val dice loss: 0.21499785430291118 - Val iou Score: 0.6325819913078757 - Val iou loss: 0.3674180086921243
+Epoch: 30/65
+66it [00:17,  3.77it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.22362086831620245 - Train ce loss: 0.16792354416666608 - Train dice score: 0.8335060712062952 - Train dice loss: 0.1664939723683126 - Train iou Score: 0.6914035858529987 - Train iou loss: 0.30859641414700134
+Val loss: 0.24624231457710266 - Val ce loss: 0.1466169997173197 - Val dice score: 0.7919986072708579 - Val dice loss: 0.20800144181532018 - Val iou Score: 0.6657041574225706 - Val iou loss: 0.3342958425774294
+Epoch: 31/65
+66it [00:17,  3.71it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.19615593597744452 - Train ce loss: 0.16283358599651943 - Train dice score: 0.8580570148699211 - Train dice loss: 0.14194303626815477 - Train iou Score: 0.7329699966040525 - Train iou loss: 0.26703000339594757
+Val loss: 0.2587173695073408 - Val ce loss: 0.15266317611231522 - Val dice score: 0.7808070287984961 - Val dice loss: 0.21919302247902928 - Val iou Score: 0.648731191368664 - Val iou loss: 0.35126880863133597
+Epoch: 32/65
+66it [00:17,  3.75it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.22202448253378723 - Train ce loss: 0.16924871346264175 - Train dice score: 0.8325904806454977 - Train dice loss: 0.1674095739920934 - Train iou Score: 0.6969727327426275 - Train iou loss: 0.30302726725737256
+Val loss: 0.23362425670904272 - Val ce loss: 0.14816860416356256 - Val dice score: 0.8069562596433303 - Val dice loss: 0.19304378856630885 - Val iou Score: 0.6830674532581779 - Val iou loss: 0.3169325467418222
+Epoch: 33/65
+66it [00:17,  3.71it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.1924075825196324 - Train ce loss: 0.16070516215580882 - Train dice score: 0.8582758804162344 - Train dice loss: 0.14172417410846913 - Train iou Score: 0.7410578023303639 - Train iou loss: 0.2589421976696361
+Val loss: 0.2240155181464027 - Val ce loss: 0.15076711467083762 - Val dice score: 0.8223175757071551 - Val dice loss: 0.17768247294075348 - Val iou Score: 0.6930272438946892 - Val iou loss: 0.3069727561053108
+Epoch: 34/65
+66it [00:18,  3.58it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.19669081248117215 - Train ce loss: 0.1614149980472796 - Train dice score: 0.8560203914389466 - Train dice loss: 0.1439796503294598 - Train iou Score: 0.7329601275198387 - Train iou loss: 0.26703987248016126
+Val loss: 0.2053266036159852 - Val ce loss: 0.1435119141550625 - Val dice score: 0.8316204653066748 - Val dice loss: 0.16837958377950332 - Val iou Score: 0.7268190418972689 - Val iou loss: 0.27318095810273113
+Epoch: 35/65
+66it [00:16,  3.89it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.20984650019443396 - Train ce loss: 0.16390395457997467 - Train dice score: 0.8466450472672781 - Train dice loss: 0.1533550016130462 - Train iou Score: 0.7106907376737306 - Train iou loss: 0.2893092623262694
+Val loss: 0.2232219909920412 - Val ce loss: 0.1500067329582046 - Val dice score: 0.8219642218421487 - Val dice loss: 0.17803582373787374 - Val iou Score: 0.6949842204065884 - Val iou loss: 0.30501577959341164
+Epoch: 36/65
+66it [00:17,  3.87it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.17680400045532169 - Train ce loss: 0.15789435363628648 - Train dice score: 0.8749302761121229 - Train dice loss: 0.12506977130066266 - Train iou Score: 0.7620069547133013 - Train iou loss: 0.23799304528669876
+Val loss: 0.22620461618199067 - Val ce loss: 0.1448227338054601 - Val dice score: 0.8141973334200242 - Val dice loss: 0.18580270383287878 - Val iou Score: 0.6927025440861198 - Val iou loss: 0.3072974559138803
+Epoch: 37/65
+66it [00:18,  3.64it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.17975597264188709 - Train ce loss: 0.15879771610101065 - Train dice score: 0.8731526985312953 - Train dice loss: 0.12684734899437788 - Train iou Score: 0.7568562798427813 - Train iou loss: 0.2431437201572187
+Val loss: 0.21132145383778742 - Val ce loss: 0.14707801359541275 - Val dice score: 0.8263825949500588 - Val dice loss: 0.1736174488768858 - Val iou Score: 0.7188528355430154 - Val iou loss: 0.28114716445698457
+Epoch: 38/65
+66it [00:16,  3.90it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.19428882612423462 - Train ce loss: 0.15831765724402486 - Train dice score: 0.8583060006300608 - Train dice loss: 0.1416940496049144 - Train iou Score: 0.7351308221166785 - Train iou loss: 0.2648691778833216
+Val loss: 0.22400511362973383 - Val ce loss: 0.1450387980131542 - Val dice score: 0.8024162790354561 - Val dice loss: 0.19758376216187196 - Val iou Score: 0.7100903830107521 - Val iou loss: 0.28990961698924794
+Epoch: 39/65
+66it [00:17,  3.72it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.19165562183567972 - Train ce loss: 0.16155994322263834 - Train dice score: 0.8585732597293276 - Train dice loss: 0.14142679265051178 - Train iou Score: 0.743067716107224 - Train iou loss: 0.256932283892776
+Val loss: 0.22286806825329275 - Val ce loss: 0.15016801479984732 - Val dice score: 0.815356012652902 - Val dice loss: 0.1846440307357732 - Val iou Score: 0.7025578740765067 - Val iou loss: 0.29744212592349334
+Epoch: 40/65
+66it [00:17,  3.80it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.1816880036935662 - Train ce loss: 0.15780021893707188 - Train dice score: 0.8724739090962843 - Train dice loss: 0.12752613402677304 - Train iou Score: 0.7522062424457434 - Train iou loss: 0.24779375755425656
+Val loss: 0.21039514068294973 - Val ce loss: 0.14414837342851303 - Val dice score: 0.832690088187947 - Val dice loss: 0.167309953009381 - Val iou Score: 0.7133962967816521 - Val iou loss: 0.2866037032183479
+Epoch: 41/65
+66it [00:18,  3.66it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.16770651676889622 - Train ce loss: 0.15505101531744003 - Train dice score: 0.8830555496793805 - Train dice loss: 0.11694449254057625 - Train iou Score: 0.7752037174773939 - Train iou loss: 0.22479628252260614
+Val loss: 0.24534621747101054 - Val ce loss: 0.14950478164588704 - Val dice score: 0.7985246234080371 - Val dice loss: 0.20147542085717707 - Val iou Score: 0.6628622850951027 - Val iou loss: 0.33713771490489736
+Epoch: 42/65
+66it [00:17,  3.80it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.1859908839969924 - Train ce loss: 0.1580858218173186 - Train dice score: 0.86780918005741 - Train dice loss: 0.13219086509762387 - Train iou Score: 0.7462565754399155 - Train iou loss: 0.2537434245600845
+Val loss: 0.22708439739311442 - Val ce loss: 0.14791732763542847 - Val dice score: 0.8160666262402254 - Val dice loss: 0.1839334224076832 - Val iou Score: 0.6901811063289642 - Val iou loss: 0.30981889367103577
+Epoch: 43/65
+66it [00:16,  3.89it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.18336765332655472 - Train ce loss: 0.15879970303539073 - Train dice score: 0.8721816557826418 - Train dice loss: 0.1278183874533032 - Train iou Score: 0.7487991154193878 - Train iou loss: 0.2512008845806122
+Val loss: 0.18629171304843006 - Val ce loss: 0.1429582707145635 - Val dice score: 0.843447604600121 - Val dice loss: 0.15655243309105144 - Val iou Score: 0.7623022864846623 - Val iou loss: 0.23769771351533778
+Epoch: 44/65
+66it [00:17,  3.86it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.16786822834701248 - Train ce loss: 0.1557722936073939 - Train dice score: 0.883891505725456 - Train dice loss: 0.1161085364945007 - Train iou Score: 0.7743241181879332 - Train iou loss: 0.22567588181206674
+Val loss: 0.22040589854997747 - Val ce loss: 0.14070859507602804 - Val dice score: 0.8093602797564339 - Val dice loss: 0.19063976407051086 - Val iou Score: 0.7099793202736798 - Val iou loss: 0.2900206797263202
+Epoch: 45/65
+66it [00:16,  3.89it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.1863351125608791 - Train ce loss: 0.15988412939689375 - Train dice score: 0.8671665534828649 - Train dice loss: 0.1328334856891271 - Train iou Score: 0.7469377752506372 - Train iou loss: 0.25306222474936285
+Val loss: 0.22856779747149525 - Val ce loss: 0.14242944340495503 - Val dice score: 0.8062257100554073 - Val dice loss: 0.19377432149999282 - Val iou Score: 0.6935695690267226 - Val iou loss: 0.3064304309732774
+Epoch: 46/65
+66it [00:17,  3.78it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.16400410336526958 - Train ce loss: 0.15497261929241093 - Train dice score: 0.8851695277474143 - Train dice loss: 0.1148305143596548 - Train iou Score: 0.7823065708984028 - Train iou loss: 0.21769342910159717
+Val loss: 0.19456935454817378 - Val ce loss: 0.14747736603021622 - Val dice score: 0.8522647724432104 - Val dice loss: 0.14773527927258434 - Val iou Score: 0.7350505800808177 - Val iou loss: 0.26494941991918225
+Epoch: 47/65
+66it [00:16,  3.89it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.18544224062652298 - Train ce loss: 0.1603936884890903 - Train dice score: 0.8692815990159006 - Train dice loss: 0.1307184464777961 - Train iou Score: 0.7473096992030288 - Train iou loss: 0.2526903007969712
+Val loss: 0.25937879874425773 - Val ce loss: 0.15385516601450303 - Val dice score: 0.7777614242890302 - Val dice loss: 0.22223862786503398 - Val iou Score: 0.6507192271597245 - Val iou loss: 0.3492807728402755
+Epoch: 48/65
+66it [00:18,  3.63it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.17274610517602978 - Train ce loss: 0.1560728314022223 - Train dice score: 0.8814280313072782 - Train dice loss: 0.11857200921936469 - Train iou Score: 0.7647431718580651 - Train iou loss: 0.23525682814193494
+Val loss: 0.17750119023463307 - Val ce loss: 0.1447843501673025 - Val dice score: 0.858348597498501 - Val dice loss: 0.14165142967420466 - Val iou Score: 0.7702906377175275 - Val iou loss: 0.2297093622824725
+Epoch: 49/65
+66it [00:16,  3.91it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.17029263372674133 - Train ce loss: 0.1545661665273435 - Train dice score: 0.8781547284487522 - Train dice loss: 0.12184532167333545 - Train iou Score: 0.7733968297640482 - Train iou loss: 0.22660317023595175
+Val loss: 0.23491379530990825 - Val ce loss: 0.1508029572227422 - Val dice score: 0.8029700903331533 - Val dice loss: 0.197029953055522 - Val iou Score: 0.6851469541297239 - Val iou loss: 0.31485304587027607
+Epoch: 50/65
+66it [00:17,  3.82it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.18695380583857046 - Train ce loss: 0.16321362430850664 - Train dice score: 0.8664074856223483 - Train dice loss: 0.13359256201621258 - Train iou Score: 0.7478148675326145 - Train iou loss: 0.2521851324673855
+Val loss: 0.2126314491033554 - Val ce loss: 0.14987272418597164 - Val dice score: 0.8284444984267739 - Val dice loss: 0.17155553619651234 - Val iou Score: 0.7149132840773639 - Val iou loss: 0.2850867159226361
+Epoch: 51/65
+66it [00:18,  3.53it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.1633535652901187 - Train ce loss: 0.1544421065711614 - Train dice score: 0.8871664720954318 - Train dice loss: 0.11283356831832365 - Train iou Score: 0.7816707148696437 - Train iou loss: 0.2183292851303563
+Val loss: 0.17360755976508646 - Val ce loss: 0.1395646351225236 - Val dice score: 0.8648249121273265 - Val dice loss: 0.13517512950827093 - Val iou Score: 0.7709385577370139 - Val iou loss: 0.22906144226298614
+Epoch: 52/65
+66it [00:17,  3.83it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.1702743565494364 - Train ce loss: 0.15608541385242433 - Train dice score: 0.8776306979583971 - Train dice loss: 0.12236935464721738 - Train iou Score: 0.7747261749975609 - Train iou loss: 0.2252738250024391
+Val loss: 0.2299224541467779 - Val ce loss: 0.15234359748223247 - Val dice score: 0.804254833389731 - Val dice loss: 0.19574521832606373 - Val iou Score: 0.6971108913421631 - Val iou loss: 0.3028891086578369
+Epoch: 53/65
+66it [00:17,  3.77it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.18246437947858463 - Train ce loss: 0.15633793152642972 - Train dice score: 0.871418092286948 - Train dice loss: 0.12858194530461775 - Train iou Score: 0.7505899712894902 - Train iou loss: 0.2494100287105098
+Val loss: 0.1906226321178324 - Val ce loss: 0.13897074408390941 - Val dice score: 0.842987018473008 - Val dice loss: 0.15701301176758373 - Val iou Score: 0.7499418153482325 - Val iou loss: 0.2500581846517675
+Epoch: 54/65
+66it [00:18,  3.57it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.16127407358902873 - Train ce loss: 0.1530963426286524 - Train dice score: 0.891429089235537 - Train dice loss: 0.10857095095244321 - Train iou Score: 0.7819339452367841 - Train iou loss: 0.21806605476321597
+Val loss: 0.17900533711209016 - Val ce loss: 0.13706640241777196 - Val dice score: 0.8633949931930093 - Val dice loss: 0.13660506641163545 - Val iou Score: 0.7576249382075142 - Val iou loss: 0.24237506179248586
+Epoch: 55/65
+66it [00:17,  3.81it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.15618897929336084 - Train ce loss: 0.15238674323667178 - Train dice score: 0.8970713678634528 - Train dice loss: 0.10292867966222041 - Train iou Score: 0.7886496086915334 - Train iou loss: 0.21135039130846658
+Val loss: 0.17699923234827378 - Val ce loss: 0.13842810997191599 - Val dice score: 0.8575958258965436 - Val dice loss: 0.14240421793040106 - Val iou Score: 0.7691201918265399 - Val iou loss: 0.23087980817346013
+Epoch: 56/65
+66it [00:17,  3.83it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.15162904831496152 - Train ce loss: 0.1509187717103597 - Train dice score: 0.8993702639232982 - Train dice loss: 0.10062979037563007 - Train iou Score: 0.797016562837543 - Train iou loss: 0.2029834371624571
+Val loss: 0.18116339690545025 - Val ce loss: 0.14067664172719507 - Val dice score: 0.8639177609892452 - Val dice loss: 0.13608228985001058 - Val iou Score: 0.7535121230518117 - Val iou loss: 0.24648787694818833
+Epoch: 57/65
+66it [00:17,  3.72it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.16821887637629654 - Train ce loss: 0.1559006277133118 - Train dice score: 0.8855684345418756 - Train dice loss: 0.11443160496877902 - Train iou Score: 0.7718347365205939 - Train iou loss: 0.2281652634794062
+Val loss: 0.21503275983473835 - Val ce loss: 0.14648038061226115 - Val dice score: 0.8218387856202967 - Val dice loss: 0.17816127266953974 - Val iou Score: 0.7138195704011356 - Val iou loss: 0.28618042959886436
+Epoch: 58/65
+66it [00:17,  3.87it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.16996907205744224 - Train ce loss: 0.1554957963526249 - Train dice score: 0.8803581676699899 - Train dice loss: 0.11964187714638132 - Train iou Score: 0.7724671020652308 - Train iou loss: 0.22753289793476913
+Val loss: 0.18062752047005823 - Val ce loss: 0.14211346384357004 - Val dice score: 0.857984227292678 - Val dice loss: 0.14201581828734455 - Val iou Score: 0.7615037595524508 - Val iou loss: 0.23849624044754925
+Epoch: 59/65
+66it [00:17,  3.69it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.15860726165049005 - Train ce loss: 0.15167587476246286 - Train dice score: 0.8937040585460085 - Train dice loss: 0.10629599214051709 - Train iou Score: 0.7856157819430033 - Train iou loss: 0.21438421805699667
+Val loss: 0.22243752199060776 - Val ce loss: 0.14253880083560944 - Val dice score: 0.8137921024771297 - Val dice loss: 0.1862079619484789 - Val iou Score: 0.701383567908231 - Val iou loss: 0.298616432091769
+Epoch: 60/65
+66it [00:18,  3.54it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:18<?, ?it/s]
+Train loss: 0.17979193004694852 - Train ce loss: 0.1581722182983702 - Train dice score: 0.8704621629281477 - Train dice loss: 0.1295378849361882 - Train iou Score: 0.7591441752332629 - Train iou loss: 0.24085582476673703
+Val loss: 0.18707186071311727 - Val ce loss: 0.14360325498615994 - Val dice score: 0.8598185672479517 - Val dice loss: 0.14018146869014292 - Val iou Score: 0.744303450864904 - Val iou loss: 0.25569654913509593
+Epoch: 61/65
+66it [00:16,  3.95it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:16<?, ?it/s]
+Train loss: 0.17618117289561214 - Train ce loss: 0.15749813763029646 - Train dice score: 0.878378380428661 - Train dice loss: 0.12162166664546187 - Train iou Score: 0.7599178119139238 - Train iou loss: 0.2400821880860762
+Val loss: 0.2046674279605641 - Val ce loss: 0.14154529615360148 - Val dice score: 0.844547317308538 - Val dice loss: 0.15545272388878992 - Val iou Score: 0.7145568132400513 - Val iou loss: 0.28544318675994873
+Epoch: 62/65
+66it [00:17,  3.73it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.1642064813411597 - Train ce loss: 0.1531453084087733 - Train dice score: 0.8886891766027971 - Train dice loss: 0.11131086979400028 - Train iou Score: 0.7773673308618141 - Train iou loss: 0.2226326691381859
+Val loss: 0.16866062756846933 - Val ce loss: 0.13652284399551504 - Val dice score: 0.8740658514639911 - Val dice loss: 0.12593420857892318 - Val iou Score: 0.7725440754609949 - Val iou loss: 0.22745592453900507
+Epoch: 63/65
+66it [00:17,  3.77it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.14048926870931278 - Train ce loss: 0.1486106412203023 - Train dice score: 0.9092089091286515 - Train dice loss: 0.09079114720225334 - Train iou Score: 0.8138733009497324 - Train iou loss: 0.18612669905026755
+Val loss: 0.17213833244407878 - Val ce loss: 0.13921864418422475 - Val dice score: 0.8620769346461576 - Val dice loss: 0.13792312539675655 - Val iou Score: 0.7771866181317497 - Val iou loss: 0.22281338186825023
+Epoch: 64/65
+66it [00:17,  3.71it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.17377605165044466 - Train ce loss: 0.15578613847945677 - Train dice score: 0.8800594788609128 - Train dice loss: 0.11994056302038106 - Train iou Score: 0.7633935113747915 - Train iou loss: 0.23660648862520853
+Val loss: 0.2409962310510523 - Val ce loss: 0.1598312298164648 - Val dice score: 0.8181619574041927 - Val dice loss: 0.18183809518814087 - Val iou Score: 0.6592631410149967 - Val iou loss: 0.3407368589850033
+Epoch: 65/65
+66it [00:17,  3.72it/s]                                                                                         | 0/66 [00:00<?, ?it/s] 
+  0%|                                                                                                           | 0/66 [00:17<?, ?it/s]
+Train loss: 0.22938050216797626 - Train ce loss: 0.17136422996268127 - Train dice score: 0.8306531174616381 - Train dice loss: 0.16934692961248485 - Train iou Score: 0.681577798092004 - Train iou loss: 0.31842220190799597
+Val loss: 0.2017447597840253 - Val ce loss: 0.14766267643255346 - Val dice score: 0.8427133875734666 - Val dice loss: 0.15728665493866978 - Val iou Score: 0.7267560958862305 - Val iou loss: 0.27324390411376953

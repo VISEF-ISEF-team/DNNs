@@ -19,7 +19,7 @@ def visualize(epochs, scores, legends, x_label, y_label, title, config):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
-    plt.savefig(f"outputs/{config['name']}/graph3.jpeg")
+    plt.savefig(f"outputs/{config['name']}/graph2.jpeg")
     plt.show()
 
 def parse_args():
@@ -39,7 +39,7 @@ def plotting():
         metrics.append(df[column].tolist())
         
     iters = [i for i in range(1, (len(metrics[0])) + 1)]
-    visualize(iters, [metrics[4], metrics[2], metrics[10], metrics[8]],  [fields[4], fields[2], fields[10], fields[8]],
+    visualize(iters, [metrics[4], metrics[6], metrics[10], metrics[12]],  [fields[4], fields[6], fields[10], fields[12]],
             'Epochs', 'Scores', 'Training results', config)
     
 
@@ -59,13 +59,13 @@ def compare(gt, label):
     
 def val_pipeline():
     # Input
-    model = torch.load('outputs/Synapse_TransUnet_bs10_ps16_R50-ViT-B_16_epo10_hw256/model.pth')
-    input = np.load('data/Synapse/p_images/0005_0060.npy')
-    label = np.load('data/Synapse/p_labels/0005_0060.npy')
+    model = torch.load('outputs/imagechd_NestedUNet_bs12_ps16_woDS_epo65_hw192/model.pth')
+    input = np.load('data/imagechd/p_images/0001_0135.npy')
+    label = np.load('data/imagechd/p_labels/0001_0135.npy')
     
     # Dataloader
     x,y = input.shape
-    img_size = 256
+    img_size = 192
     input = zoom(input, (img_size / x, img_size / y), order=0)
     label = zoom(label, (img_size / x, img_size / y), order=0)
     
@@ -74,21 +74,26 @@ def val_pipeline():
     logits = model(input)
     val, pred = torch.max(logits, dim=1)
     
+    # detach
+    pred = pred[0].detach().cpu().numpy()
+    
     # Visualize
+    viz_label = zoom(label, (x / img_size, y / img_size), order=0)
+    viz_pred = zoom(pred, (x / img_size, y / img_size), order=0)
     compare(
-        label,
-        pred[0].detach().cpu().numpy(),     
+        viz_label,
+        viz_pred
     )
     
     # Dice
     label = torch.tensor(label).unsqueeze(0).cuda()
-    dl = Dice(num_classes=9)
+    dl = Dice(num_classes=8)
     ds, dl, class_ds, class_dl = dl(logits, label)
     print(f"DICE SCORE: {ds.item()} - DICE LOSS: {dl.item()}")
     print(f"CLASS-WISE DICE SCORE: \n {class_ds}")
     print(f"CLASS-WISE DICE LOSS: \n {class_dl}")
     
-    iou = IOU(num_classes=9)
+    iou = IOU(num_classes=8)
     iou_score, class_iou = iou(logits, label)
     print(f"IOU SCORE: {iou_score.item()} - IOU LOSS: {1 - iou_score.item()}")
     print(f"CLASS-WISE IOU SCORE: \n {class_iou}")

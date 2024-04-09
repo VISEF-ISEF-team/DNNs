@@ -70,33 +70,48 @@ class AttentionBlock(nn.Module):
         return out * x2
     
 class ASPP(nn.Module):
-    def __init__(self, in_channels, out_channels, rate=[6, 12, 18]):
+    def __init__(self, in_dims, out_dims, rate=[6, 12, 18]):
         super(ASPP, self).__init__()
 
         self.aspp_block1 = nn.Sequential(
             nn.Conv2d(
-                in_channels, out_channels, 3, stride=1, padding=rate[0], dilation=rate[0]
+                in_dims, out_dims, 3, stride=1, padding=rate[0], dilation=rate[0]
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_dims),
         )
         self.aspp_block2 = nn.Sequential(
             nn.Conv2d(
-                in_channels, out_channels, 3, stride=1, padding=rate[1], dilation=rate[1]
+                in_dims, out_dims, 3, stride=1, padding=rate[1], dilation=rate[1]
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_dims),
         )
         self.aspp_block3 = nn.Sequential(
             nn.Conv2d(
-                in_channels, out_channels, 3, stride=1, padding=rate[2], dilation=rate[2]
+                in_dims, out_dims, 3, stride=1, padding=rate[2], dilation=rate[2]
             ),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(out_dims),
         )
 
-        self.output = nn.Conv2d(len(rate) * out_channels, out_channels, 1)
+        self.output = nn.Conv2d(len(rate) * out_dims, out_dims, 1)
         self._init_weights()
+
+    def forward(self, x):
+        x1 = self.aspp_block1(x)
+        x2 = self.aspp_block2(x)
+        x3 = self.aspp_block3(x)
+        out = torch.cat([x1, x2, x3], dim=1)
+        return self.output(out)
+
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight)
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
 class Upsample_(nn.Module):
     def __init__(self, scale=2):
@@ -107,9 +122,9 @@ class Upsample_(nn.Module):
     def forward(self, x):
         return self.upsample(x)
 
-class ResUnetPlusPlus(nn.Module):
-    def __init__(self, input_channel, filters=[32, 64, 128, 256, 512]):
-        super(ResUnetPlusPlus, self).__init__()
+class NestedResUNetAtt(nn.Module):
+    def __init__(self, num_classes, input_channel=1, filters=[32, 64, 128, 256, 512]):
+        super(NestedResUNetAtt, self).__init__()
 
         self.input_layer = nn.Sequential(
             nn.Conv2d(input_channel, filters[0], kernel_size=3, padding=1),
@@ -146,7 +161,7 @@ class ResUnetPlusPlus(nn.Module):
         self.up_residual_conv3 = ResidualConv(filters[2] + filters[0], filters[1], stride=1, padding=1)
 
         self.aspp_out = ASPP(filters[1], filters[0])
-        self.output_layer = nn.Sequential(nn.Conv2d(filters[0], 1, 1), nn.Sigmoid())
+        self.output_layer = nn.Sequential(nn.Conv2d(filters[0], num_classes, 1))
 
     def forward(self, x):
         x1 = self.input_layer(x) + self.input_skip(x)

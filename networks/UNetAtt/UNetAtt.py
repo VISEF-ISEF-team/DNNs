@@ -69,13 +69,13 @@ class DecoderBlock(nn.Module):
         x = self.c1(x)
         return x
 
-class UnetAttention(nn.Module):
+class UNetAtt(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
 
         filters = [64, 128, 256, 512]
         
-        self.e1 = EncoderBlock(3, filters[0])
+        self.e1 = EncoderBlock(1, filters[0])
         self.e2 = EncoderBlock(filters[0], filters[1])
         self.e3 = EncoderBlock(filters[1], filters[2])
         
@@ -103,10 +103,3 @@ class UnetAttention(nn.Module):
 
         output = self.output(d3)
         return output
-
-
-if __name__ == "__main__":
-    x = torch.randn((1, 3, 256, 256))
-    model = UnetAttention(num_classes=12)
-    output = model(x)
-    print(output.size())

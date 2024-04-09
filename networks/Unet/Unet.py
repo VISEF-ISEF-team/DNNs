@@ -48,8 +48,8 @@ class DecoderBlock(nn.Module):
         x = self.conv(x)
         return x
 
-class Unet(nn.Module):
-    def __init__(self):
+class UNet(nn.Module):
+    def __init__(self, num_classes):
         super().__init__()
 
         # Encoder
@@ -67,7 +67,7 @@ class Unet(nn.Module):
         self.d3 = DecoderBlock(256, 128)
         self.d4 = DecoderBlock(128, 64)
 
-        self.outputs = nn.Conv2d(64, 4, kernel_size=1, padding=0)
+        self.outputs = nn.Conv2d(64, num_classes, kernel_size=1, padding=0)
 
     def forward(self, inputs):
         
@@ -88,3 +88,5 @@ class Unet(nn.Module):
 
         output = self.outputs(d4)
         return output
+
+

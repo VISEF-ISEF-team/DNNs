@@ -17,12 +17,14 @@ from torch.nn import CrossEntropyLoss, Dropout, Softmax, Linear, Conv2d, LayerNo
 from torch.nn.modules.utils import _pair
 from scipy import ndimage
 from .swin_unet_skip import SwinTransformerSys
+from config import sample_config
 
 logger = logging.getLogger(__name__)
 
 class SwinUNet(nn.Module):
-    def __init__(self, config, img_size=224, num_classes=21843, zero_head=False, vis=False):
+    def __init__(self, config, img_size, num_classes, zero_head=False, vis=False):
         super(SwinUNet, self).__init__()
+        self.img_size = img_size
         self.num_classes = num_classes
         self.zero_head = zero_head
         self.config = config
@@ -91,3 +93,9 @@ class SwinUNet(nn.Module):
         else:
             print("none pretrain")
  
+ 
+input = torch.rand(1,1,192,192).cuda()
+config = sample_config()
+model = SwinUNet(config=config, num_classes=config.DATA.NUM_CLASSES).cuda()
+output = model(input)
+print(output.size())

@@ -42,9 +42,9 @@ class ResidualConv(nn.Module):
         return output
 
 
-class ResUnet(nn.Module):
-    def __init__(self, input_channel, filters=[64, 128, 256, 512]):
-        super(ResUnet, self).__init__()
+class ResUNet(nn.Module):
+    def __init__(self, num_classes, input_channel=1, filters=[64, 128, 256, 512]):
+        super(ResUNet, self).__init__()
 
         self.input_layer = nn.Sequential(
             nn.Conv2d(input_channel, filters[0], kernel_size=3, padding=1),
@@ -72,8 +72,7 @@ class ResUnet(nn.Module):
         self.up_residual_conv3 = ResidualConv(filters[1] + filters[0], filters[0], stride=1, padding=1)
 
         self.output_layer = nn.Sequential(
-            nn.Conv2d(filters[0], 1, 1, 1),
-            nn.Sigmoid(),
+            nn.Conv2d(filters[0], num_classes, 1, 1),
         )
 
     def forward(self, x):

@@ -9,7 +9,7 @@ from utils import str2bool
 from collections import OrderedDict
 from sklearn.model_selection import train_test_split
 
-from trainer import trainer, validate
+from trainer import trainer, validate, write_csv
 from dataset import CustomDataset
 import torch
 from torch.utils.data import DataLoader
@@ -22,7 +22,11 @@ from networks import networks
 from networks.TransUNet.vit_configs import VIT_CONFIGS
 from networks.TransUNet.TransUNet import TransUNet
 from networks.NestedUNet.NestedUNet import NestedUNet
-
+from networks.UNet.UNet import UNet
+from networks.NestedUNet.NestedUNet import NestedUNet
+from networks.UNetAtt.UNetAtt import UNetAtt
+from networks.NestedResUNetAtt.NestedResUNetAtt import NestedResUNetAtt
+from networks.ResUNet.ResUNet import ResUNet
 
 NETWORKS = networks.__all__
 VIT_CONFIGS_LIST = list(VIT_CONFIGS.keys()) 
@@ -34,7 +38,7 @@ def parse_args():
     # Training pipeline
     parser.add_argument('--name', default=None, 
                         help='model name: (default: arch+timestamp)')
-    parser.add_argument('--epochs', default=30, type=int, metavar='N',
+    parser.add_argument('--epochs', default=65, type=int, metavar='N',
                         help='number of epochs for training')
     parser.add_argument('--batch_size', default=12, type=int, metavar='N',
                         help='mini-batch size')
@@ -42,25 +46,25 @@ def parse_args():
     parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
     
     # Network
-    parser.add_argument('--type', default='Transformer', choices=['Transformer', 'Nested', 'Normal'],
+    parser.add_argument('--type', default='Normal', choices=['Transformer', 'Nested', 'Normal'],
                         help='type of networks: ' + ' | '.join(['Transformer', 'Nested', 'Normal'])
                         + 'default (Transformer)')
     parser.add_argument('--vit_name', default='R50-ViT-B_16',
                         help='vision transformer name:' 
                         + ' | '.join(VIT_CONFIGS_LIST) + '(default: R50-ViT-B_16)')
     parser.add_argument('--deep_supervision', default=False, help='deep supervision')
-    parser.add_argument('--network', default='TransUnet', choices=NETWORKS,
+    parser.add_argument('--network', default='ResUNet', choices=NETWORKS,
                         help='networks: ' + ' | '.join(NETWORKS) 
                         + 'default: TransUnet')
     parser.add_argument('--input_channels', default=1, type=int,
                         help='input channels')
     parser.add_argument('--patch_size', default=16, type=int,
                         help='input patch size')
-    parser.add_argument('--num_classes', default=9, type=int,
+    parser.add_argument('--num_classes', default=8, type=int,
                         help='number of classes')
-    parser.add_argument('--width', default=128, type=int, 
+    parser.add_argument('--width', default=192, type=int, 
                         help='input image width')
-    parser.add_argument('--height', default=128, type=int,
+    parser.add_argument('--height', default=192, type=int,
                         help='input image height')
     
     # Criterion
@@ -115,7 +119,7 @@ def train(config):
     if config.type == 'Transformer':
         config.name += f"_{config.vit_name}"
     elif config.type == 'Nested':
-        if config['deep_supervision']:
+        if config.deep_supervision:
             config.name += '_wDS'
         else:
             config.name += '_woDS'
@@ -193,9 +197,24 @@ def train(config):
     
     elif config.network == 'NestedUNet':
         model = NestedUNet(num_classes=config.num_classes, input_channels=1, deep_supervision=config.deep_supervision).cuda()
+    
+    elif config.network == 'UNet':
+        model = UNet(num_classes=config.num_classes).cuda()
+        
+    elif config.network == 'NestedUNet':
+        model = NestedUNet(num_classes=config.num_classes).cuda()
+    
+    elif config.network == 'UNetAtt':
+        model = UNetAtt(num_classes=config.num_classes).cuda()
+    
+    elif config.network == 'NestedResUNetAtt':
+        model = NestedResUNetAtt(num_classes=config.num_classes).cuda()
+    
+    elif config.network == 'ResUNet':
+        model = ResUNet(num_classes=config.num_classes).cuda()
 
     else: raise "WRONG NETWORK NAME"
-    
+        
     # Optimizer
     params = filter(lambda p: p.requires_grad, model.parameters())
     if config.optimizer == 'Adam':
@@ -212,6 +231,10 @@ def train(config):
     # Training loop
     best_iou = 0
     best_dice_score = 0
+
+    fieldnames = ['CE Loss', 'Dice Score', 'Dice Loss', 'IoU Score', 'IoU Loss', 'Total Loss']
+    write_csv(f'outputs/{config.name}/iter_log.csv', fieldnames)
+
     for epoch in range(config.epochs):
         print(f"Epoch: {epoch+1}/{config.epochs}")
         train_log = trainer(config, train_loader, optimizer, model, ce, dice, iou)

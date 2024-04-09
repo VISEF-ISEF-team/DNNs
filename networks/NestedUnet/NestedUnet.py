@@ -56,7 +56,7 @@ class NestedUNet(nn.Module):
         self.conv2_4 = ConvBatchRelu(filters[1] * 3 + filters[2], filters[1])
 
         # 5 layers for block 1
-        self.conv0_4 = ConvBatchRelu(filters[0] * 4 + filters[1], filters[0])
+        self.conv1_5 = ConvBatchRelu(filters[0] * 4 + filters[1], filters[0])
         
         self.deep_supervision = deep_supervision
         if self.deep_supervision:
@@ -71,23 +71,23 @@ class NestedUNet(nn.Module):
     def forward(self, input):
         x1_1 = self.conv1_1(input)
         
-        x2_1 = self.conv1_0(self.pool(x1_1)) # downsampling
-        x1_2 = self.conv0_1(torch.cat([x1_1, self.up(x2_1)], 1))  # block 2 -> block 1 = block 1 layer 2
+        x2_1 = self.conv2_1(self.pool(x1_1)) # downsampling
+        x1_2 = self.conv1_2(torch.cat([x1_1, self.up(x2_1)], 1))  # block 2 -> block 1 = block 1 layer 2
 
-        x3_1 = self.conv2_0(self.pool(x2_1)) # downsampling
-        x2_2 = self.conv1_1(torch.cat([x2_1, self.up(x3_1)], 1))  # block 3 -> block 2 = block 2 layer 2
-        x1_3 = self.conv0_2(torch.cat([x1_1, x1_2, self.up(x2_2)], 1)) # block 2 -> block 1 = block 1 layer 3
+        x3_1 = self.conv3_1(self.pool(x2_1)) # downsampling
+        x2_2 = self.conv2_2(torch.cat([x2_1, self.up(x3_1)], 1))  # block 3 -> block 2 = block 2 layer 2
+        x1_3 = self.conv1_3(torch.cat([x1_1, x1_2, self.up(x2_2)], 1)) # block 2 -> block 1 = block 1 layer 3
 
-        x4_1 = self.conv3_0(self.pool(x3_1)) # downsampling
-        x3_2 = self.conv2_1(torch.cat([x3_1, self.up(x4_1)], 1)) # block 4 -> block 3 = block 3 layer 2
-        x2_3 = self.conv1_2(torch.cat([x2_1, x2_2, self.up(x3_2)], 1)) # block 3 -> block 2 = block 2 layer 3
-        x1_4 = self.conv0_3(torch.cat([x1_1, x1_2, x1_3, self.up(x2_3)], 1)) # block 2 -> block 1 = block 1 layer 4
+        x4_1 = self.conv4_1(self.pool(x3_1)) # downsampling
+        x3_2 = self.conv3_2(torch.cat([x3_1, self.up(x4_1)], 1)) # block 4 -> block 3 = block 3 layer 2
+        x2_3 = self.conv2_3(torch.cat([x2_1, x2_2, self.up(x3_2)], 1)) # block 3 -> block 2 = block 2 layer 3
+        x1_4 = self.conv1_4(torch.cat([x1_1, x1_2, x1_3, self.up(x2_3)], 1)) # block 2 -> block 1 = block 1 layer 4
 
-        x5_1 = self.conv4_0(self.pool(x4_1)) # downsampling
-        x4_2 = self.conv3_1(torch.cat([x4_1, self.up(x5_1)], 1))  # block 5 -> block 4 = block 4 layer 2
-        x3_3 = self.conv2_2(torch.cat([x3_1, x3_2, self.up(x4_2)], 1)) # block 4 -> block 3 = block 3 layer 3
-        x2_4 = self.conv1_3(torch.cat([x2_1, x2_2, x2_3, self.up(x3_3)], 1)) # block 3 -> block 2 = block 2 layer 4
-        x1_5 = self.conv0_4(torch.cat([x1_1, x1_2, x1_3, x1_4, self.up(x2_4)], 1))  # block 2 -> block 1 = block 1 layer 5
+        x5_1 = self.conv5_1(self.pool(x4_1)) # downsampling
+        x4_2 = self.conv4_2(torch.cat([x4_1, self.up(x5_1)], 1))  # block 5 -> block 4 = block 4 layer 2
+        x3_3 = self.conv3_3(torch.cat([x3_1, x3_2, self.up(x4_2)], 1)) # block 4 -> block 3 = block 3 layer 3
+        x2_4 = self.conv2_4(torch.cat([x2_1, x2_2, x2_3, self.up(x3_3)], 1)) # block 3 -> block 2 = block 2 layer 4
+        x1_5 = self.conv1_5(torch.cat([x1_1, x1_2, x1_3, x1_4, self.up(x2_4)], 1))  # block 2 -> block 1 = block 1 layer 5
             
         if self.deep_supervision:            
             output1 = self.final1(x1_2)
