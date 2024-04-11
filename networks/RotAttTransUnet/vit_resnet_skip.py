@@ -7,6 +7,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from configs import get_config
+
 
 def np2th(weights, conv=False):
     # Possibly convert HWIO to OIHW
@@ -73,7 +75,6 @@ class PreActBottleneck(nn.Module):
         y = self.relu(self.gn1(self.conv1(x)))
         y = self.relu(self.gn2(self.conv2(y)))
         y = self.gn3(self.conv3(y))
-
         y = self.relu(residual + y)
         return y
 
@@ -143,20 +144,25 @@ class ResNetV2(nn.Module):
         ]))
 
     def forward(self, x):
+        print(x.size())
         features = []
         b, c, in_size, _ = x.size()
         x = self.root(x)
         features.append(x)
         
         x = nn.MaxPool2d(kernel_size=3, stride=2, padding=0)(x)
+        print(x.size()) 
+        
         for i in range(len(self.body)-1):
             x = self.body[i](x)
+            
             right_size = int(in_size / 4 / (i+1))
             if x.size()[2] != right_size:
                 pad = right_size - x.size()[2]
-                assert pad < 3 and pad > 0, "x {} should {}".format(x.size(), right_size)
+                assert 0 < pad and pad < 3, "x {} should {}".format(x.size(), right_size)
                 feat = torch.zeros((b, x.size()[1], right_size, right_size), device=x.device)
                 feat[:, :, 0:x.size()[2], 0:x.size()[3]] = x[:]
+                print(x.size())
             else:
                 feat = x
             features.append(feat)

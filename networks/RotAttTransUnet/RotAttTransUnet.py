@@ -15,13 +15,6 @@ from configs import get_config
 from vit_resnet_skip import ResNetV2
 
 
-class PositionalEmbedding(nn.Module):
-    def __init__(self, config):
-        super().__init__(self)
-        
-    def forward(self, x):
-        pass
-
 class Embedding(nn.Module):
     def __init__(self, config, input_channels):
         super().__init__()
@@ -51,12 +44,12 @@ class Embedding(nn.Module):
         self.position_embeddings = nn.Parameter(torch.zeros(1, num_patches, config.d_f))
         self.dropout = nn.Dropout(config.transformer.dropout_rate)
 
-    def forward(self, x):    
+    def forward(self, x):
         if self.hybrid: 
             x, features = self.hybrid_model(x)
         else: features = None
         
-        x = self.patch_embeddings(x)
+        x = self.patch_embeddings(x)        
         x = x.flatten(2).transpose(-1, -2)
         embeddings = x + self.position_embeddings
         embeddings = self.dropout(embeddings)
@@ -348,3 +341,10 @@ class RotAttTransUNet(nn.Module):
         decoded = self.decoder(inter_encoded, features)
         logits = self.segmentation_head(decoded)
         return logits
+    
+    
+config = get_config()
+model = RotAttTransUNet(config=config, num_classes=config.num_classes).cuda()
+input = torch.rand(3,1,256,256).cuda()
+output = model(input)
+print(output.size())
