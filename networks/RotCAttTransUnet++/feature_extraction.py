@@ -28,12 +28,12 @@ class DownSampling(nn.Module):
     def __init__(self, config):
         super().__init__()
         in_channels = config.in_channels
-        channel_nums = config.channel_nums
-        self.convert = ConvBatchNorm(in_channels, channel_nums[0])
-        self.down1 = DownBlock(channel_nums[0], channel_nums[1], nb_Conv=2)
-        self.down2 = DownBlock(channel_nums[1], channel_nums[2], nb_Conv=2)
-        self.down3 = DownBlock(channel_nums[2], channel_nums[3], nb_Conv=2)
-        self.down4 = DownBlock(channel_nums[3], channel_nums[3], nb_Conv=2)
+        df = config.df
+        self.convert = ConvBatchNorm(in_channels, df[0])
+        self.down1 = DownBlock(df[0], df[1], nb_Conv=2)
+        self.down2 = DownBlock(df[1], df[2], nb_Conv=2)
+        self.down3 = DownBlock(df[2], df[3], nb_Conv=2)
+        self.down4 = DownBlock(df[3], df[3], nb_Conv=2)
                     
     def forward(self, x):
         x = x.float()

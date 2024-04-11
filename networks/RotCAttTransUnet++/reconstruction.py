@@ -27,16 +27,12 @@ class ReconBlock(nn.Module):
 class Reconstruction(nn.Module):
     def __init__(self, config):
         super().__init__()
-        channel_nums = config.channel_nums
-        patches_size = config.patches_size
-        self.reconstruct_1 = ReconBlock(channel_nums[0], channel_nums[0], kernel_size=1,
-                                        scale_factor=(patches_size[0], patches_size[0]))
-        self.reconstruct_2 = ReconBlock(channel_nums[1], channel_nums[1], kernel_size=1,
-                                        scale_factor=(patches_size[1], patches_size[1]))
-        self.reconstruct_3 = ReconBlock(channel_nums[2], channel_nums[2], kernel_size=1,
-                                        scale_factor=(patches_size[2], patches_size[2]))
-        self.reconstruct_4 = ReconBlock(channel_nums[3], channel_nums[3], kernel_size=1, 
-                                        scale_factor=(patches_size[3], patches_size[3]))
+        df = config.df
+        p = config.p
+        self.reconstruct_1 = ReconBlock(df[0], df[0], kernel_size=1, scale_factor=(p[0], p[0]))
+        self.reconstruct_2 = ReconBlock(df[1], df[1], kernel_size=1, scale_factor=(p[1], p[1]))
+        self.reconstruct_3 = ReconBlock(df[2], df[2], kernel_size=1, scale_factor=(p[2], p[2]))
+        self.reconstruct_4 = ReconBlock(df[3], df[3], kernel_size=1, scale_factor=(p[3], p[3]))
         
     def forward(self, enc1, enc2, enc3, enc4):
         r1 = self.reconstruct_1(enc1)

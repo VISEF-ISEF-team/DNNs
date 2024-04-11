@@ -13,10 +13,6 @@ def get_config():
     config.d_v = 768
     config.d_q = 768
     
-    # Channel-wise Transformer
-    config.patches_size = [16, 8, 4, 2]
-    config.channel_nums = [64, 128, 256, 512]
-    
     # Transformer
     config.transformer = ml_collections.ConfigDict()
     config.transformer.mlp_dim = 3072

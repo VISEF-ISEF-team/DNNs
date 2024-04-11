@@ -57,14 +57,13 @@ class UpBlockAtt(nn.Module):
 class UpSampling(nn.Module):
     def __init__(self, config):
         super().__init__()
-        channel_nums = config.channel_nums
-        self.up4 = UpBlockAtt(channel_nums[3]*2, channel_nums[2], nb_Conv=2)
-        self.up3 = UpBlockAtt(channel_nums[3]  , channel_nums[1], nb_Conv=2)
-        self.up2 = UpBlockAtt(channel_nums[2]  , channel_nums[0], nb_Conv=2)
-        self.up1 = UpBlockAtt(channel_nums[1]  , channel_nums[0], nb_Conv=2)
+        df = config.df
+        self.up4 = UpBlockAtt(df[3]*2, df[2], nb_Conv=2)
+        self.up3 = UpBlockAtt(df[3]  , df[1], nb_Conv=2)
+        self.up2 = UpBlockAtt(df[2]  , df[0], nb_Conv=2)
+        self.up1 = UpBlockAtt(df[1]  , df[0], nb_Conv=2)
     
     def forward(self, enc1, enc2, enc3, enc4, x5):
-        print(x5.size(), enc4.size())
         x = self.up4(x5, enc4)
         x = self.up3(x, enc3)        
         x = self.up2(x, enc2)        

@@ -6,11 +6,14 @@ def get_config():
     # Input
     config.num_classes = 8
     config.in_channels = 1
-    config.img_size       = 256
-    config.d_f         = 768
-    config.d_k         = 768
-    config.d_v         = 768
-    config.d_q         = 768
+    config.img_size    = 256
+    config.p           = [16, 8, 4, 2]
+    
+    # Rotatory attention
+    config.df          = [64, 128, 256, 512]
+    config.dk          = [64, 128, 256, 512]
+    config.dv          = [64, 128, 256, 512]
+    config.dq          = [64, 128, 256, 512]
     
     # Channel-wise Transformer
     config.patches_size = [16, 8, 4, 2]

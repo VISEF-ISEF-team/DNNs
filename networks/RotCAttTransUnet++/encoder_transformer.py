@@ -31,7 +31,7 @@ class MultiheadChannelAttention(nn.Module):
         super().__init__()
         self.vis = config.vis
         self.KV_size = config.KV_size
-        channel_nums = config.channel_nums
+        df = config.df
         self.n_heads = config.transformer.num_heads
 
         self.W_Q_1 = nn.ModuleList()
@@ -43,10 +43,10 @@ class MultiheadChannelAttention(nn.Module):
         self.W_V = nn.ModuleList()
 
         for _ in range(self.n_heads):
-            W_Q_1_H = nn.Linear(channel_nums[0], channel_nums[0], bias=False)
-            W_Q_2_H = nn.Linear(channel_nums[1], channel_nums[1], bias=False)
-            W_Q_3_H = nn.Linear(channel_nums[2], channel_nums[2], bias=False)
-            W_Q_4_H = nn.Linear(channel_nums[3], channel_nums[3], bias=False)
+            W_Q_1_H = nn.Linear(df[0], df[0], bias=False)
+            W_Q_2_H = nn.Linear(df[1], df[1], bias=False)
+            W_Q_3_H = nn.Linear(df[2], df[2], bias=False)
+            W_Q_4_H = nn.Linear(df[3], df[3], bias=False)
             
             W_K_H = nn.Linear(self.KV_size,  self.KV_size, bias=False)
             W_V_H = nn.Linear(self.KV_size,  self.KV_size, bias=False)
@@ -63,10 +63,10 @@ class MultiheadChannelAttention(nn.Module):
         self.psi = nn.InstanceNorm2d(self.n_heads)
         self.softmax = nn.Softmax(dim=3)
         
-        self.W_O_1 = nn.Linear(channel_nums[0], channel_nums[0], bias=False)
-        self.W_O_2 = nn.Linear(channel_nums[1], channel_nums[1], bias=False)
-        self.W_O_3 = nn.Linear(channel_nums[2], channel_nums[2], bias=False)
-        self.W_O_4 = nn.Linear(channel_nums[3], channel_nums[3], bias=False)
+        self.W_O_1 = nn.Linear(df[0], df[0], bias=False)
+        self.W_O_2 = nn.Linear(df[1], df[1], bias=False)
+        self.W_O_3 = nn.Linear(df[2], df[2], bias=False)
+        self.W_O_4 = nn.Linear(df[3], df[3], bias=False)
         
         self.attn_dropout = nn.Dropout(config.transformer.att_dropout_rate)
         self.proj_dropout = nn.Dropout(config.transformer.att_dropout_rate)
@@ -194,23 +194,23 @@ class EncoderBlock(nn.Module):
     def __init__(self, config):
         super().__init__()
         mlp_ratio = config.mlp_ratio
-        channel_nums = config.channel_nums
-        self.attn_norm1 = nn.LayerNorm(channel_nums[0], eps=1e-6)
-        self.attn_norm2 = nn.LayerNorm(channel_nums[1], eps=1e-6)
-        self.attn_norm3 = nn.LayerNorm(channel_nums[2], eps=1e-6)
-        self.attn_norm4 = nn.LayerNorm(channel_nums[3], eps=1e-6)
+        df = config.df
+        self.attn_norm1 = nn.LayerNorm(df[0], eps=1e-6)
+        self.attn_norm2 = nn.LayerNorm(df[1], eps=1e-6)
+        self.attn_norm3 = nn.LayerNorm(df[2], eps=1e-6)
+        self.attn_norm4 = nn.LayerNorm(df[3], eps=1e-6)
         self.attn_norm =  nn.LayerNorm(config.KV_size, eps=1e-6)
         self.multi_channel_attn = MultiheadChannelAttention(config)
 
-        self.ffn_norm1 = nn.LayerNorm(channel_nums[0], eps=1e-6)
-        self.ffn_norm2 = nn.LayerNorm(channel_nums[1], eps=1e-6)
-        self.ffn_norm3 = nn.LayerNorm(channel_nums[2], eps=1e-6)
-        self.ffn_norm4 = nn.LayerNorm(channel_nums[3], eps=1e-6)
+        self.ffn_norm1 = nn.LayerNorm(df[0], eps=1e-6)
+        self.ffn_norm2 = nn.LayerNorm(df[1], eps=1e-6)
+        self.ffn_norm3 = nn.LayerNorm(df[2], eps=1e-6)
+        self.ffn_norm4 = nn.LayerNorm(df[3], eps=1e-6)
         
-        self.ffn1 = MLP(config, channel_nums[0], channel_nums[0]*mlp_ratio)
-        self.ffn2 = MLP(config, channel_nums[1], channel_nums[1]*mlp_ratio)
-        self.ffn3 = MLP(config, channel_nums[2], channel_nums[2]*mlp_ratio)
-        self.ffn4 = MLP(config, channel_nums[3], channel_nums[3]*mlp_ratio)
+        self.ffn1 = MLP(config, df[0], df[0]*mlp_ratio)
+        self.ffn2 = MLP(config, df[1], df[1]*mlp_ratio)
+        self.ffn3 = MLP(config, df[2], df[2]*mlp_ratio)
+        self.ffn4 = MLP(config, df[3], df[3]*mlp_ratio)
 
     def forward(self, emb1, emb2, emb3, emb4):
         '''  Block 1 ''' 
@@ -260,12 +260,12 @@ class Encoder(nn.Module):
     def __init__(self, config):
         super(Encoder, self).__init__()
         self.vis = config.vis
-        channel_nums = config.channel_nums
+        df = config.df
         self.layers = nn.ModuleList()
-        self.encoder_norm1 = nn.LayerNorm(channel_nums[0], eps=1e-6)
-        self.encoder_norm2 = nn.LayerNorm(channel_nums[1], eps=1e-6)
-        self.encoder_norm3 = nn.LayerNorm(channel_nums[2], eps=1e-6)
-        self.encoder_norm4 = nn.LayerNorm(channel_nums[3], eps=1e-6)
+        self.encoder_norm1 = nn.LayerNorm(df[0], eps=1e-6)
+        self.encoder_norm2 = nn.LayerNorm(df[1], eps=1e-6)
+        self.encoder_norm3 = nn.LayerNorm(df[2], eps=1e-6)
+        self.encoder_norm4 = nn.LayerNorm(df[3], eps=1e-6)
                 
         for _ in range(config.transformer.num_layers):
             layer = EncoderBlock(config)
@@ -292,18 +292,17 @@ class ChannelTransformer(nn.Module):
         # Extract config
         self.config = config
         img_size = config.img_size
-        channel_nums = config.channel_nums
-        patches_size = config.patches_size
+        df = config.df
+        p = config.p
         
         # Embedding layers
-        self.embeddings_1 = ChannelEmbeddings(config, img_size=img_size,      patch_size=patches_size[0], in_channels=channel_nums[0])
-        self.embeddings_2 = ChannelEmbeddings(config, img_size=img_size // 2, patch_size=patches_size[1], in_channels=channel_nums[1])
-        self.embeddings_3 = ChannelEmbeddings(config, img_size=img_size // 4, patch_size=patches_size[2], in_channels=channel_nums[2])
-        self.embeddings_4 = ChannelEmbeddings(config, img_size=img_size // 8, patch_size=patches_size[3], in_channels=channel_nums[3])
+        self.embeddings_1 = ChannelEmbeddings(config, img_size=img_size,      patch_size=p[0], in_channels=df[0])
+        self.embeddings_2 = ChannelEmbeddings(config, img_size=img_size // 2, patch_size=p[1], in_channels=df[1])
+        self.embeddings_3 = ChannelEmbeddings(config, img_size=img_size // 4, patch_size=p[2], in_channels=df[2])
+        self.embeddings_4 = ChannelEmbeddings(config, img_size=img_size // 8, patch_size=p[3], in_channels=df[3])
         
         # Encode embedding layers
         self.encoder = Encoder(config)
-         
             
     def forward(self, x1, x2, x3, x4):
         emb1 = self.embeddings_1(x1)
@@ -312,4 +311,4 @@ class ChannelTransformer(nn.Module):
         emb4 = self.embeddings_4(x4)
         
         enc1, enc2, enc3, enc4, a_weights = self.encoder(emb1, emb2, emb3, emb4)
-        return enc1, enc2, enc3, enc4, a_weights
+        return emb1, emb2, emb3, emb4, enc1, enc2, enc3, enc4, a_weights
