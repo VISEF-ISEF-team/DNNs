@@ -4,16 +4,14 @@ from __future__ import print_function
 
 
 import numpy as np
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from configs import get_config
-from feature_extraction import *
-from encoder_transformer import *
-from reconstruction import *
-from decoder_attention import *
-from rotatory_attention import *
+from .feature_extraction import *
+from .encoder_transformer import *
+from .reconstruction import *
+from .decoder_attention import *
+from .rotatory_attention import *
 
 
 class RotCAttTransUNetDense(nn.Module):
@@ -43,10 +41,10 @@ class RotCAttTransUNetDense(nn.Module):
         d1, d2, d3, d4 = self.reconstruction(er1, er2, er3, er4)
         y = self.up_sampling(d1, d2, d3, d4, x5)
         y = self.out(y)
-        return y, a_weights
+        return y
         
-config = get_config()
-model = RotCAttTransUNetDense(config=config).cuda()
-input = torch.rand(8, 1, 256, 256).cuda()
-logits, _ = model(input)
-print(logits.size())
+# config = get_config()
+# model = RotCAttTransUNetDense(config=config).cuda()
+# input = torch.rand(8, 1, 256, 256).cuda()
+# logits, _ = model(input)
+# print(logits.size())

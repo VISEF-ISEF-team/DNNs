@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from feature_extraction import ConvBatchNorm
+from .feature_extraction import ConvBatchNorm
 
 class Flatten(nn.Module):
     def forward(self, x):

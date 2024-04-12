@@ -27,6 +27,8 @@ from networks.NestedUNet.NestedUNet import NestedUNet
 from networks.UNetAtt.UNetAtt import UNetAtt
 from networks.NestedResUNetAtt.NestedResUNetAtt import NestedResUNetAtt
 from networks.ResUNet.ResUNet import ResUNet
+from networks.RotCAttTransUNetDense.RotCAttTransUNetDense import RotCAttTransUNetDense
+from networks.RotCAttTransUNetDense.configs import get_config
 
 NETWORKS = networks.__all__
 VIT_CONFIGS_LIST = list(VIT_CONFIGS.keys()) 
@@ -46,25 +48,25 @@ def parse_args():
     parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
     
     # Network
-    parser.add_argument('--type', default='Normal', choices=['Transformer', 'Nested', 'Normal'],
+    parser.add_argument('--type', default='Transformer', choices=['Transformer', 'Nested', 'Normal'],
                         help='type of networks: ' + ' | '.join(['Transformer', 'Nested', 'Normal'])
                         + 'default (Transformer)')
     parser.add_argument('--vit_name', default='R50-ViT-B_16',
                         help='vision transformer name:' 
                         + ' | '.join(VIT_CONFIGS_LIST) + '(default: R50-ViT-B_16)')
     parser.add_argument('--deep_supervision', default=False, help='deep supervision')
-    parser.add_argument('--network', default='ResUNet', choices=NETWORKS,
+    parser.add_argument('--network', default='RotCAttTransUNetDense', choices=NETWORKS,
                         help='networks: ' + ' | '.join(NETWORKS) 
-                        + 'default: TransUnet')
+                        + 'default: RotCAttTransUNetDense')
     parser.add_argument('--input_channels', default=1, type=int,
                         help='input channels')
     parser.add_argument('--patch_size', default=16, type=int,
                         help='input patch size')
     parser.add_argument('--num_classes', default=8, type=int,
                         help='number of classes')
-    parser.add_argument('--width', default=192, type=int, 
+    parser.add_argument('--width', default=128, type=int, 
                         help='input image width')
-    parser.add_argument('--height', default=192, type=int,
+    parser.add_argument('--height', default=128, type=int,
                         help='input image height')
     
     # Criterion
@@ -116,7 +118,7 @@ def train(config):
     
     ## Specify model name
     config.name = f"{config.dataset}_{config.network}_bs{config.batch_size}_ps{config.patch_size}"
-    if config.type == 'Transformer':
+    if config.type == 'Transformer' and config.network == 'TransUNet':
         config.name += f"_{config.vit_name}"
     elif config.type == 'Nested':
         if config.deep_supervision:
@@ -125,7 +127,7 @@ def train(config):
             config.name += '_woDS'
     config.name += f"_epo{config.epochs}_hw{config.width}"
     
-    if config.type != 'Transformer':
+    if config.type != 'Transformer' or config.network != 'TransUNet':
         config.vit_name = None
         config_dict['vit_name'] = None
         
@@ -190,7 +192,6 @@ def train(config):
         
         if config.vit_name.find('R50') != -1:
             vit_config.patches.grid = (int(config.width / config.patch_size), int(config.width / config.patch_size))
-            print(vit_config.patches.grid)
         
         print(f'=> Intialize vision transformer config: {vit_config}')
         model = TransUNet(config=vit_config, img_size=config.width, num_classes=config.num_classes).cuda()
@@ -212,7 +213,12 @@ def train(config):
     
     elif config.network == 'ResUNet':
         model = ResUNet(num_classes=config.num_classes).cuda()
-
+        
+    elif config.network == 'RotCAttTransUNetDense':
+        model_config = get_config()
+        model = RotCAttTransUNetDense(model_config).cuda()
+        
+        
     else: raise "WRONG NETWORK NAME"
         
     # Optimizer

@@ -39,7 +39,7 @@ def plotting():
         metrics.append(df[column].tolist())
         
     iters = [i for i in range(1, (len(metrics[0])) + 1)]
-    visualize(iters, [metrics[4], metrics[6], metrics[10], metrics[12]],  [fields[4], fields[6], fields[10], fields[12]],
+    visualize(iters, [metrics[4], metrics[2], metrics[10], metrics[8]],  [fields[4], fields[2], fields[10], fields[8]],
             'Epochs', 'Scores', 'Training results', config)
     
 
