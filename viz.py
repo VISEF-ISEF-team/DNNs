@@ -57,11 +57,38 @@ def compare(gt, label):
     plt.tight_layout() 
     plt.show()
     
+def rot_val():
+    model = torch.load('outputs/imagechd_ResUNet_bs12_ps16_epo65_hw128/model.pth')
+    vol = []
+    labels = []
+    for index in range(120, 132, 1):
+        input = np.load(f'data/imagechd/p_images/0001_0{index}.npy')
+        label = np.load(f'data/imagechd/p_labels/0001_0{index}.npy')
+        
+        x,y = input.shape
+        img_size = 128
+        input = zoom(input, (img_size / x, img_size / y), order=0)
+        label = zoom(label, (img_size / x, img_size / y), order=0)
+        
+        input = torch.tensor(input).unsqueeze(0)
+        
+        vol.append(input)
+        labels.append(label)
+        
+    vol = torch.stack(vol, dim=0).cuda()
+    logits = model(vol)
+    
+    for index in range(12):
+        val, pred = torch.max(logits, dim=1)
+        pred = pred[0].detach().cpu().numpy()
+        label = labels[index]
+        compare(pred, label)
+    
 def val_pipeline():
     # Input
-    model = torch.load('outputs/imagechd_NestedUNet_bs12_ps16_woDS_epo65_hw192/model.pth')
-    input = np.load('data/imagechd/p_images/0001_0135.npy')
-    label = np.load('data/imagechd/p_labels/0001_0135.npy')
+    model = torch.load('outputs/imagechd_ResUNet_bs12_ps16_epo65_hw128/model.pth')
+    input = np.load('data/imagechd/p_images/0001_0120.npy')
+    label = np.load('data/imagechd/p_labels/0001_0120.npy')
     
     # Dataloader
     x,y = input.shape
@@ -98,4 +125,4 @@ def val_pipeline():
     print(f"IOU SCORE: {iou_score.item()} - IOU LOSS: {1 - iou_score.item()}")
     print(f"CLASS-WISE IOU SCORE: \n {class_iou}")
     
-plotting()
+rot_val()
