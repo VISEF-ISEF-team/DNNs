@@ -1,0 +1,8 @@
+numpy
+ml_collections
+matplotlib
+scipy
+scikit-learn
+argparse
+pandas
+tqdm

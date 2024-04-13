@@ -40,7 +40,9 @@ def parse_args():
     # Training pipeline
     parser.add_argument('--name', default=None, 
                         help='model name: (default: arch+timestamp)')
-    parser.add_argument('--epochs', default=65, type=int, metavar='N',
+    parser.add_argument('--pretrained', default=True,
+                        help='pretrained or not (default: True)')
+    parser.add_argument('--epochs', default=100, type=int, metavar='N',
                         help='number of epochs for training')
     parser.add_argument('--batch_size', default=12, type=int, metavar='N',
                         help='mini-batch size')
@@ -55,18 +57,19 @@ def parse_args():
                         help='vision transformer name:' 
                         + ' | '.join(VIT_CONFIGS_LIST) + '(default: R50-ViT-B_16)')
     parser.add_argument('--deep_supervision', default=False, help='deep supervision')
-    parser.add_argument('--network', default='RotCAttTransUNetDense', choices=NETWORKS,
+    parser.add_argument('--pretrain', default=False, help='pretrained vit or not')
+    parser.add_argument('--network', default='TransUNet', choices=NETWORKS,
                         help='networks: ' + ' | '.join(NETWORKS) 
-                        + 'default: RotCAttTransUNetDense')
+                        + 'default: TransUNet')
     parser.add_argument('--input_channels', default=1, type=int,
                         help='input channels')
     parser.add_argument('--patch_size', default=16, type=int,
                         help='input patch size')
     parser.add_argument('--num_classes', default=8, type=int,
                         help='number of classes')
-    parser.add_argument('--width', default=128, type=int, 
+    parser.add_argument('--width', default=256, type=int, 
                         help='input image width')
-    parser.add_argument('--height', default=128, type=int,
+    parser.add_argument('--height', default=256, type=int,
                         help='input image height')
     
     # Criterion
@@ -111,6 +114,14 @@ def output_config(config):
         print(f'{key}: {config[key]}')
     print('-' * 20)   
     
+def load_pretrain_model(model_path):
+    if os.path.exists(model_path):
+        model = torch.load(model_path)
+        return model
+    else:
+        print("No model exits")
+        exit()
+        
 def train(config):
     # Process the config
     config_dict = vars(config)
@@ -119,7 +130,9 @@ def train(config):
     ## Specify model name
     config.name = f"{config.dataset}_{config.network}_bs{config.batch_size}_ps{config.patch_size}"
     if config.type == 'Transformer' and config.network == 'TransUNet':
+        config.name = config.name + '_pretrained' if config.pretrain else config.name
         config.name += f"_{config.vit_name}"
+        
     elif config.type == 'Nested':
         if config.deep_supervision:
             config.name += '_wDS'
@@ -185,7 +198,7 @@ def train(config):
     
     # Model
     print(f"=> Initialize model: {config.network}")
-    if config.network == 'TransUnet':
+    if config.network == 'TransUNet':
         vit_config = VIT_CONFIGS[config.vit_name]
         vit_config.n_classes = config.num_classes
         vit_config.n_skip = 3
@@ -194,8 +207,11 @@ def train(config):
             vit_config.patches.grid = (int(config.width / config.patch_size), int(config.width / config.patch_size))
         
         print(f'=> Intialize vision transformer config: {vit_config}')
+        
         model = TransUNet(config=vit_config, img_size=config.width, num_classes=config.num_classes).cuda()
-    
+        if config.pretrain: model.load_from(weights=np.load(vit_config.pretrained_path))
+        
+        
     elif config.network == 'NestedUNet':
         model = NestedUNet(num_classes=config.num_classes, input_channels=1, deep_supervision=config.deep_supervision).cuda()
     
@@ -214,9 +230,13 @@ def train(config):
     elif config.network == 'ResUNet':
         model = ResUNet(num_classes=config.num_classes).cuda()
         
-    elif config.network == 'RotCAttTransUNetDense':
+    elif config.network == 'RotCAttTransUNetDense' and config.pretrained == False:
         model_config = get_config()
         model = RotCAttTransUNetDense(model_config).cuda()
+        
+    elif config.network == 'RotCAttTransUNetDense' and config.pretrained == True:
+        model_config = get_config()
+        model = load_pretrain_model(os.listdir(config.name, 'model.pth'))
         
         
     else: raise "WRONG NETWORK NAME"

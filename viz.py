@@ -4,7 +4,7 @@ import csv
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
+import nibabel as nib
 import torch
 from scipy.ndimage import zoom
 from metrics import Dice, IOU
@@ -46,11 +46,11 @@ def plotting():
 # Prediction comparision
 def compare(gt, label):
     fig, axes = plt.subplots(1, 2, figsize=(12, 8))  
-    axes[0].set_title('Ground truth')
+    axes[0].set_title('Label')
     axes[0].imshow(gt) 
     axes[0].axis('off')
     
-    axes[1].set_title('Label')
+    axes[1].set_title('Prediction')
     axes[1].imshow(label) 
     axes[1].axis('off') 
     
@@ -58,12 +58,12 @@ def compare(gt, label):
     plt.show()
     
 def rot_val():
-    model = torch.load('outputs/imagechd_ResUNet_bs12_ps16_epo65_hw128/model.pth')
+    model = torch.load('outputs/imagechd_RotCAttTransUNetDense_bs12_ps16_epo65_hw128/model.pth')
     vol = []
     labels = []
     for index in range(120, 132, 1):
-        input = np.load(f'data/imagechd/p_images/0001_0{index}.npy')
-        label = np.load(f'data/imagechd/p_labels/0001_0{index}.npy')
+        input = np.load(f'data/imagechd/p_images/0004_0{index}.npy')
+        label = np.load(f'data/imagechd/p_labels/0004_0{index}.npy')
         
         x,y = input.shape
         img_size = 128
@@ -82,17 +82,17 @@ def rot_val():
         val, pred = torch.max(logits, dim=1)
         pred = pred[0].detach().cpu().numpy()
         label = labels[index]
-        compare(pred, label)
+        compare(label, pred)
     
-def val_pipeline():
+def val_each(vol_index, index):
     # Input
-    model = torch.load('outputs/imagechd_ResUNet_bs12_ps16_epo65_hw128/model.pth')
-    input = np.load('data/imagechd/p_images/0001_0120.npy')
-    label = np.load('data/imagechd/p_labels/0001_0120.npy')
+    model = torch.load('outputs/imagechd_NestedUNet_bs12_ps16_woDS_epo100_hw256/model.pth')
+    input = np.load(f'data/imagechd/p_images/{vol_index:04d}_{index:04d}.npy')
+    label = np.load(f'data/imagechd/p_labels/{vol_index:04d}_{index:04d}.npy')
     
     # Dataloader
     x,y = input.shape
-    img_size = 192
+    img_size = 256
     input = zoom(input, (img_size / x, img_size / y), order=0)
     label = zoom(label, (img_size / x, img_size / y), order=0)
     
@@ -105,24 +105,45 @@ def val_pipeline():
     pred = pred[0].detach().cpu().numpy()
     
     # Visualize
-    viz_label = zoom(label, (x / img_size, y / img_size), order=0)
-    viz_pred = zoom(pred, (x / img_size, y / img_size), order=0)
-    compare(
-        viz_label,
-        viz_pred
-    )
+    # viz_label = zoom(label, (x / img_size, y / img_size), order=0)
+    # viz_pred = zoom(pred, (x / img_size, y / img_size), order=0)
+    # compare(
+    #     viz_label,
+    #     viz_pred
+    # )
     
     # Dice
-    label = torch.tensor(label).unsqueeze(0).cuda()
-    dl = Dice(num_classes=8)
-    ds, dl, class_ds, class_dl = dl(logits, label)
-    print(f"DICE SCORE: {ds.item()} - DICE LOSS: {dl.item()}")
-    print(f"CLASS-WISE DICE SCORE: \n {class_ds}")
-    print(f"CLASS-WISE DICE LOSS: \n {class_dl}")
+    # label = torch.tensor(label).unsqueeze(0).cuda()
+    # dl = Dice(num_classes=8)
+    # ds, dl, class_ds, class_dl = dl(logits, label)
+    # print(f"DICE SCORE: {ds.item()} - DICE LOSS: {dl.item()}")
+    # print(f"CLASS-WISE DICE SCORE: \n {class_ds}")
+    # print(f"CLASS-WISE DICE LOSS: \n {class_dl}")
     
-    iou = IOU(num_classes=8)
-    iou_score, class_iou = iou(logits, label)
-    print(f"IOU SCORE: {iou_score.item()} - IOU LOSS: {1 - iou_score.item()}")
-    print(f"CLASS-WISE IOU SCORE: \n {class_iou}")
+    # iou = IOU(num_classes=8)
+    # iou_score, class_iou = iou(logits, label)
+    # print(f"IOU SCORE: {iou_score.item()} - IOU LOSS: {1 - iou_score.item()}")
+    # print(f"CLASS-WISE IOU SCORE: \n {class_iou}")
     
-rot_val()
+    return pred
+
+def save_vol(vol, path):
+    vol = np.transpose(vol, (2, 1, 0))
+    affine = np.eye(4)
+    nifti_file = nib.Nifti1Image(vol, affine)
+    nib.save(nifti_file, path)
+    
+    
+def val_pipeline():
+    vol = []
+    label = []
+    vol_index = 1
+    for index in range(1, 221+1, 1):
+        slice, mask = val_each(vol_index, index)
+        vol.append(slice)
+        label.append(mask)
+        
+    save_vol(np.array(vol), f'reconstruction/{vol_index:04d}_image.nii.gz')
+    save_vol(np.array(label), f'reconstruction/{vol_index:04d}_label.nii.gz')
+    
+val_pipeline()
