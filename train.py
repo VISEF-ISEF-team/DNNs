@@ -79,7 +79,7 @@ def parse_args():
                         help='input image height')
     
     # Criterion
-    parser.add_argument('--loss', default='Dice iou cross entropy', choices=LOSSES)
+    parser.add_argument('--loss', default='Dice Iou Cross entropy', choices=LOSSES)
     
     # Dataset
     parser.add_argument('--dataset', default='imagechd', help='dataset name')
