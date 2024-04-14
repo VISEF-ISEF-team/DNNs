@@ -10,7 +10,7 @@ from collections import OrderedDict
 from sklearn.model_selection import train_test_split
 
 from trainer import trainer, validate, write_csv
-from dataset import CustomDataset
+from dataset import CustomDataset, CustomDataset3D
 import torch
 from torch.utils.data import DataLoader
 import torch.optim as optim
@@ -29,6 +29,10 @@ from networks.NestedResUNetAtt.NestedResUNetAtt import NestedResUNetAtt
 from networks.ResUNet.ResUNet import ResUNet
 from networks.RotCAttTransUNetDense.RotCAttTransUNetDense import RotCAttTransUNetDense
 from networks.RotCAttTransUNetDense.configs import get_config
+from networks.NestedUnetAtt.NestedUNetAtt import NestedUNetAtt
+from networks.SwinUNet.SwinUNet import SwinUNet
+from networks.SwinUNet.config import sample_config as SwinConfig
+from networks.UNet3D.UNet3D_v2 import UNet3D
 
 NETWORKS = networks.__all__
 VIT_CONFIGS_LIST = list(VIT_CONFIGS.keys()) 
@@ -38,27 +42,29 @@ def parse_args():
     parser = argparse.ArgumentParser()
     
     # Training pipeline
+    parser.add_argument('--network_dim', default=3, choice=[2,3], help='2D network or 2D network')
     parser.add_argument('--name', default=None, 
                         help='model name: (default: arch+timestamp)')
-    parser.add_argument('--pretrained', default=True,
-                        help='pretrained or not (default: True)')
+    parser.add_argument('--pretrained', default=False,
+                        help='pretrained or not (default: False)')
     parser.add_argument('--epochs', default=100, type=int, metavar='N',
                         help='number of epochs for training')
-    parser.add_argument('--batch_size', default=12, type=int, metavar='N',
+    parser.add_argument('--batch_size', default=1, type=int, metavar='N',
                         help='mini-batch size')
     parser.add_argument('--seed', type=int, default=1234, help='random seed')
     parser.add_argument('--n_gpu', type=int, default=1, help='total gpu')
+    parser.add_argument('--num_workers', default=0, type=int)
     
     # Network
-    parser.add_argument('--type', default='Transformer', choices=['Transformer', 'Nested', 'Normal'],
+    parser.add_argument('--type', default='Normal', choices=['Transformer', 'Nested', 'Normal'],
                         help='type of networks: ' + ' | '.join(['Transformer', 'Nested', 'Normal'])
                         + 'default (Transformer)')
     parser.add_argument('--vit_name', default='R50-ViT-B_16',
                         help='vision transformer name:' 
                         + ' | '.join(VIT_CONFIGS_LIST) + '(default: R50-ViT-B_16)')
     parser.add_argument('--deep_supervision', default=False, help='deep supervision')
-    parser.add_argument('--pretrain', default=False, help='pretrained vit or not')
-    parser.add_argument('--network', default='TransUNet', choices=NETWORKS,
+    parser.add_argument('--vit_pretrain', default=False, help='pretrained vit or not')
+    parser.add_argument('--network', default='UNet3D', choices=NETWORKS,
                         help='networks: ' + ' | '.join(NETWORKS) 
                         + 'default: TransUNet')
     parser.add_argument('--input_channels', default=1, type=int,
@@ -67,9 +73,9 @@ def parse_args():
                         help='input patch size')
     parser.add_argument('--num_classes', default=8, type=int,
                         help='number of classes')
-    parser.add_argument('--width', default=256, type=int, 
+    parser.add_argument('--width', default=224, type=int, 
                         help='input image width')
-    parser.add_argument('--height', default=256, type=int,
+    parser.add_argument('--height', default=224, type=int,
                         help='input image height')
     
     # Criterion
@@ -122,6 +128,111 @@ def load_pretrain_model(model_path):
         print("No model exits")
         exit()
         
+def loading_2D_data(config):
+    image_paths = glob(f"data/{config.dataset}/p_r_images/*{config.ext}")
+    label_paths = glob(f"data/{config.dataset}/p_r_labels/*{config.ext}")
+    
+    train_image_paths, val_image_paths, train_label_paths, val_label_paths = train_test_split(image_paths, label_paths, test_size=0.2, random_state=41)
+    train_ds = CustomDataset(train_image_paths, train_label_paths, img_size=config.width)
+    val_ds = CustomDataset(val_image_paths, val_label_paths, img_size=config.width)
+    
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=config.num_workers,
+        drop_last=True,
+    )
+    
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=config.batch_size,
+        shuffle=False,
+        num_workers=config.num_workers,
+        drop_last=False,
+    )
+    return train_loader, val_loader
+
+def loading_3D_data(config):
+    image_paths = glob(f"data/{config.dataset}/128_images/*{config.ext}")
+    label_paths = glob(f"data/{config.dataset}/128_labels/*{config.ext}")
+    
+    train_image_paths, val_image_paths, train_label_paths, val_label_paths = train_test_split(image_paths, label_paths, test_size=0.2, random_state=41)
+    train_ds = CustomDataset3D(train_image_paths, train_label_paths)
+    val_ds = CustomDataset3D(val_image_paths, val_label_paths)
+    
+    train_loader = DataLoader(
+        train_ds,
+        batch_size=config.batch_size,
+        shuffle=True,
+        num_workers=config.num_workers,
+        drop_last=True,
+    )
+    
+    val_loader = DataLoader(
+        val_ds,
+        batch_size=config.batch_size,
+        shuffle=False,
+        num_workers=config.num_workers,
+        drop_last=False,
+    )
+    return train_loader, val_loader
+
+def train_new(config):
+    if config.network == 'TransUNet':
+        vit_config = VIT_CONFIGS[config.vit_name]
+        vit_config.n_classes = config.num_classes
+        vit_config.n_skip = 3
+        
+        if config.vit_name.find('R50') != -1:
+            vit_config.patches.grid = (int(config.width / config.patch_size), int(config.width / config.patch_size))
+        
+        print(f'=> Intialize vision transformer config: {vit_config}')
+
+        model = TransUNet(config=vit_config, img_size=config.width, num_classes=config.num_classes).cuda()
+        if config.vit_pretrain: model.load_from(weights=np.load(vit_config.pretrained_path))
+        
+        
+    elif config.network == 'NestedUNet':
+        model = NestedUNet(num_classes=config.num_classes, input_channels=1, deep_supervision=config.deep_supervision).cuda()
+    
+    elif config.network == 'UNet':
+        model = UNet(num_classes=config.num_classes).cuda()
+        
+    elif config.network == 'NestedUNet':
+        model = NestedUNet(num_classes=config.num_classes).cuda()
+    
+    elif config.network == 'UNetAtt':
+        model = UNetAtt(num_classes=config.num_classes).cuda()
+    
+    elif config.network == 'NestedResUNetAtt':
+        model = NestedResUNetAtt(num_classes=config.num_classes).cuda()
+    
+    elif config.network == 'ResUNet':
+        model = ResUNet(num_classes=config.num_classes).cuda()
+        
+    elif config.network == 'RotCAttTransUNetDense' and config.vit_pretrain == False:
+        model_config = get_config()
+        model = RotCAttTransUNetDense(model_config).cuda()
+        
+    elif config.network == 'RotCAttTransUNetDense' and config.vit_pretrain == True:
+        model_config = get_config()
+        model = load_pretrain_model(os.listdir(config.name, 'model.pth'))
+        
+    elif config.network == 'NestedUNetAtt':
+        model = NestedUNetAtt(num_classes=config.num_classes, deep_supervision=config.deep_supervision).cuda()
+        
+    elif config.network == 'SwinUNet':
+        swin_config = SwinConfig()
+        model = SwinUNet(config=swin_config, img_size=224, num_classes=config.num_classes).cuda()
+        
+    elif config.network == 'UNet3D':
+        model = UNet3D(residual='pool').cuda()
+        
+    else: raise "WRONG NETWORK NAME"
+    return model
+    
+        
 def train(config):
     # Process the config
     config_dict = vars(config)
@@ -130,7 +241,7 @@ def train(config):
     ## Specify model name
     config.name = f"{config.dataset}_{config.network}_bs{config.batch_size}_ps{config.patch_size}"
     if config.type == 'Transformer' and config.network == 'TransUNet':
-        config.name = config.name + '_pretrained' if config.pretrain else config.name
+        config.name = config.name + '_pretrained' if config.vit_pretrain else config.name
         config.name += f"_{config.vit_name}"
         
     elif config.type == 'Nested':
@@ -155,26 +266,10 @@ def train(config):
             yaml.dump(config_dict, f)
     
     # Data Loading
-    image_paths = glob(f"data/{config.dataset}/p_images/*{config.ext}")[:1000]
-    label_paths = glob(f"data/{config.dataset}/p_labels/*{config.ext}")[:1000]
-    
-    train_image_paths, val_image_paths, train_label_paths, val_label_paths = train_test_split(image_paths, label_paths, test_size=0.2, random_state=41)
-    train_ds = CustomDataset(train_image_paths, train_label_paths, img_size=config.width)
-    val_ds = CustomDataset(val_image_paths, val_label_paths, img_size=config.width)
-    
-    train_loader = DataLoader(
-        train_ds,
-        batch_size=config.batch_size,
-        shuffle=True,
-        drop_last=True
-    )
-    
-    val_loader = DataLoader(
-        val_ds,
-        batch_size=config.batch_size,
-        shuffle=False,
-        drop_last=False
-    )
+    if config.network_dim == 2:
+        train_loader, val_loader = loading_2D_data(config)
+    elif config.network_dim == 3:
+        train_loader, val_loader = loading_3D_data(config)
         
     # Loggingc
     log = OrderedDict([
@@ -198,48 +293,8 @@ def train(config):
     
     # Model
     print(f"=> Initialize model: {config.network}")
-    if config.network == 'TransUNet':
-        vit_config = VIT_CONFIGS[config.vit_name]
-        vit_config.n_classes = config.num_classes
-        vit_config.n_skip = 3
-        
-        if config.vit_name.find('R50') != -1:
-            vit_config.patches.grid = (int(config.width / config.patch_size), int(config.width / config.patch_size))
-        
-        print(f'=> Intialize vision transformer config: {vit_config}')
-        
-        model = TransUNet(config=vit_config, img_size=config.width, num_classes=config.num_classes).cuda()
-        if config.pretrain: model.load_from(weights=np.load(vit_config.pretrained_path))
-        
-        
-    elif config.network == 'NestedUNet':
-        model = NestedUNet(num_classes=config.num_classes, input_channels=1, deep_supervision=config.deep_supervision).cuda()
-    
-    elif config.network == 'UNet':
-        model = UNet(num_classes=config.num_classes).cuda()
-        
-    elif config.network == 'NestedUNet':
-        model = NestedUNet(num_classes=config.num_classes).cuda()
-    
-    elif config.network == 'UNetAtt':
-        model = UNetAtt(num_classes=config.num_classes).cuda()
-    
-    elif config.network == 'NestedResUNetAtt':
-        model = NestedResUNetAtt(num_classes=config.num_classes).cuda()
-    
-    elif config.network == 'ResUNet':
-        model = ResUNet(num_classes=config.num_classes).cuda()
-        
-    elif config.network == 'RotCAttTransUNetDense' and config.pretrained == False:
-        model_config = get_config()
-        model = RotCAttTransUNetDense(model_config).cuda()
-        
-    elif config.network == 'RotCAttTransUNetDense' and config.pretrained == True:
-        model_config = get_config()
-        model = load_pretrain_model(os.listdir(config.name, 'model.pth'))
-        
-        
-    else: raise "WRONG NETWORK NAME"
+    if not config.pretrained: model = train_new(config)
+    else: pass
         
     # Optimizer
     params = filter(lambda p: p.requires_grad, model.parameters())

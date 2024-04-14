@@ -1,7 +1,9 @@
 import os
 from torch.utils.data import Dataset
 import numpy as np
+import torch
 from scipy.ndimage import zoom
+import SimpleITK as sitk
 
 class CustomDataset(Dataset):
     def __init__(self, image_paths, label_paths, img_size, image_ext='.npy', label_ext='.npy'):
@@ -48,3 +50,41 @@ class CustomDataset(Dataset):
             label = zoom(label, (self.img_size / x, self.img_size / y), order=0)
         
         return image, label
+    
+    
+class CustomDataset3D(Dataset):
+    def __init__(self, image_paths, label_paths, ext='.nii.gz'):
+        self.image_paths = image_paths
+        self.label_paths = label_paths
+        self.ext = ext
+        self.length = len(image_paths)
+        
+    def __len__(self):
+        return self.length
+    
+    def encode(self, label):
+        unique_values, _ = np.unique(label, return_counts=True)
+        vol = []
+        for value in unique_values: 
+            label_array = np.copy(label) 
+            label_array[np.where(label_array != value)] = 0 
+            vol.append(label_array)
+        
+        vol = np.stack(vol, dim=0)
+    
+    def __getitem__(self, index):
+        image_path = self.image_paths[index]
+        label_path = self.label_paths[index]
+        
+        image = sitk.GetArrayFromImage(sitk.ReadImage(image_path, sitk.sitkFloat32))
+        label = sitk.GetArrayFromImage(sitk.ReadImage(label_path))
+        
+        image /= np.max(image)
+        
+        image = np.transpose(image, (2, 1, 0))
+        label = np.transpose(label, (2, 1, 0))
+        
+        image = image[np.newaxis, :, :, :]
+        label = self.encode(label)
+        
+        return torch.from_numpy(image), torch.from_numpy(label)

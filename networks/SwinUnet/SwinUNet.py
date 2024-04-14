@@ -17,7 +17,6 @@ from torch.nn import CrossEntropyLoss, Dropout, Softmax, Linear, Conv2d, LayerNo
 from torch.nn.modules.utils import _pair
 from scipy import ndimage
 from .swin_unet_skip import SwinTransformerSys
-from config import sample_config
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +48,9 @@ class SwinUNet(nn.Module):
         )
 
     def forward(self, x):
-        print(f'\nX input: {x.size()}')
         if x.size()[1] == 1:
             x = x.repeat(1,3,1,1)
         logits = self.swin_unet(x)
-        print(f'Y output: {logits.size()}')
         return logits
 
     def load_from(self, config):
@@ -70,7 +67,6 @@ class SwinUNet(nn.Module):
                         print("delete key:{}".format(k))
                         del pretrained_dict[k]
                 msg = self.swin_unet.load_state_dict(pretrained_dict,strict=False)
-                # print(msg)
                 return
             pretrained_dict = pretrained_dict['model']
             print("---start load pretrained modle of swin encoder---")
@@ -89,13 +85,12 @@ class SwinUNet(nn.Module):
                         del full_dict[k]
 
             msg = self.swin_unet.load_state_dict(full_dict, strict=False)
-            # print(msg)
         else:
             print("none pretrain")
  
  
-input = torch.rand(1,1,192,192).cuda()
-config = sample_config()
-model = SwinUNet(config=config, num_classes=config.DATA.NUM_CLASSES).cuda()
-output = model(input)
-print(output.size())
+# input = torch.rand(1,1,224,224).cuda()
+# config = sample_config()
+# model = SwinUNet(config=config, img_size=224, num_classes=config.DATA.NUM_CLASSES).cuda()
+# output = model(input)
+# print(output.size())

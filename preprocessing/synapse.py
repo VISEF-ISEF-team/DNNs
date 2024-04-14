@@ -25,6 +25,3 @@ def run(ds_dir):
         if not os.path.exists(path_label): np.save(path_label, label)
 
 run('../data/Synapse')
-
-    
-    

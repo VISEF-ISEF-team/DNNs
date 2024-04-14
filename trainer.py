@@ -14,6 +14,7 @@ def write_csv(path, data):
 
 def trainer(config, train_loader, optimizer, model, ce, dice, iou):
     # one epoch        
+    model.train()
     steps = len(train_loader)
     pbar = tqdm(total=steps)
     
@@ -62,7 +63,9 @@ def trainer(config, train_loader, optimizer, model, ce, dice, iou):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-               
+        pbar.update(1)
+    
+    pbar.close()           
     return OrderedDict([
         ('ce_loss', total_ce_loss / steps),
         ('dice_score', total_dice_score / steps),
@@ -74,28 +77,30 @@ def trainer(config, train_loader, optimizer, model, ce, dice, iou):
     
     
 def validate(config, val_loader, model, ce, dice, iou):
+    model.eval()
     steps = len(val_loader)
     
     total_ce_loss, total_dice_score, total_dice_loss, \
     total_iou_score, total_iou_loss, total_loss = 0,0,0,0,0,0
     
-    for input, target in val_loader:
-        input = input.unsqueeze(1).cuda()
-        target = target.cuda()
-    
-        logits = model(input)
-    
-        ce_loss = ce(logits, target[:].long())
-        dice_score, dice_loss, _, _ = dice(logits, target)
-        iou_score, _ =  iou(logits, target)
-        loss = 0.2 * ce_loss + 0.4 * dice_loss + 0.4 * (1 - iou_score)
+    with torch.no_grad():
+        for input, target in val_loader:
+            input = input.unsqueeze(1).cuda()
+            target = target.cuda()
         
-        total_ce_loss += ce_loss.item()
-        total_dice_score += dice_score.item()
-        total_dice_loss += dice_loss.item()
-        total_iou_score += iou_score.item()
-        total_iou_loss += 1.0-iou_score.item()
-        total_loss += loss.item()
+            logits = model(input)
+        
+            ce_loss = ce(logits, target[:].long())
+            dice_score, dice_loss, _, _ = dice(logits, target)
+            iou_score, _ =  iou(logits, target)
+            loss = 0.2 * ce_loss + 0.4 * dice_loss + 0.4 * (1 - iou_score)
+            
+            total_ce_loss += ce_loss.item()
+            total_dice_score += dice_score.item()
+            total_dice_loss += dice_loss.item()
+            total_iou_score += iou_score.item()
+            total_iou_loss += 1.0-iou_score.item()
+            total_loss += loss.item()
             
     return OrderedDict([
         ('ce_loss', total_ce_loss / steps),

@@ -179,3 +179,12 @@ class VNet(nn.Module):
         out = self.up_tr32(out, out16)
         out = self.out_tr(out)
         return out
+    
+    
+if __name__ == "__main__":
+    input = torch.randn(1, 1, 200, 256, 256).cuda()
+    print(input.size())
+    
+    model = VNet().cuda()
+    output = model(input)
+    print(output.size())

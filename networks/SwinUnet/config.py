@@ -30,6 +30,7 @@ def sample_config():
     _C.DATA.CACHE_MODE = 'part'
     # Pin CPU memory in DataLoader for more efficient (sometimes) transfer to GPU.
     _C.DATA.PIN_MEMORY = True
+    _C.DATA.NUM_CLASSES = 8
 
     # -----------------------------------------------------------------------------
     # Model settings

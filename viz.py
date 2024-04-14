@@ -86,7 +86,7 @@ def rot_val():
     
 def val_each(vol_index, index):
     # Input
-    model = torch.load('outputs/imagechd_NestedUNet_bs12_ps16_woDS_epo100_hw256/model.pth')
+    model = torch.load('outputs/imagechd_NestedUNetAtt_bs12_ps16_woDS_epo100_hw256_small/model.pth')
     input = np.load(f'data/imagechd/p_images/{vol_index:04d}_{index:04d}.npy')
     label = np.load(f'data/imagechd/p_labels/{vol_index:04d}_{index:04d}.npy')
     
@@ -125,12 +125,12 @@ def val_each(vol_index, index):
     # print(f"IOU SCORE: {iou_score.item()} - IOU LOSS: {1 - iou_score.item()}")
     # print(f"CLASS-WISE IOU SCORE: \n {class_iou}")
     
-    return pred
+    return pred, label
 
 def save_vol(vol, path):
     vol = np.transpose(vol, (2, 1, 0))
     affine = np.eye(4)
-    nifti_file = nib.Nifti1Image(vol, affine)
+    nifti_file = nib.Nifti1Image(vol.astype(np.int8), affine)
     nib.save(nifti_file, path)
     
     
@@ -138,12 +138,13 @@ def val_pipeline():
     vol = []
     label = []
     vol_index = 1
+    model = 'NestedUNetAtt'
     for index in range(1, 221+1, 1):
         slice, mask = val_each(vol_index, index)
         vol.append(slice)
         label.append(mask)
         
-    save_vol(np.array(vol), f'reconstruction/{vol_index:04d}_image.nii.gz')
-    save_vol(np.array(label), f'reconstruction/{vol_index:04d}_label.nii.gz')
+    save_vol(np.array(vol), f'reconstruction/{vol_index:04d}_pred_{model}.nii.gz')
+    save_vol(np.array(label), f'reconstruction/{vol_index:04d}_label_{model}.nii.gz')
     
 val_pipeline()

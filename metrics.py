@@ -1,8 +1,11 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import SimpleITK as sitk
+import matplotlib.pyplot as plt
 
-__all__ = ['Dice loss', 'Cross entropy', 'Focal loss', 'Dice cross entropy']
+__all__ = ['Dice loss', 'Cross entropy', 'Focal loss', 'Dice cross entropy', 'Binary dice loss']
 
 
 class IOU(nn.Module):
@@ -102,8 +105,86 @@ class Dice(nn.Module):
         return DICE / num_valid_classes, LOSS / num_valid_classes, class_wise_dice_score, class_wise_dice_loss
     
     
+class BinaryDiceLoss(nn.Module):
+    '''
+    Dice loss of binary class
+    Args:
+        smooth: A float number to smooth loss, and avoid NaN error, default: 1
+        p: Denominator value: \sum{x^p} + \sum{y^p}, default: 2
+        predict: A tensor of shape [N, *]
+        target: A tensor of shape same with predict
+    Returns:
+        Loss tensor according to arg reduction
+    Raise:
+        Exception if unexpected reduction
+    '''
+    def __init__(self, smooth=1, p=2):
+        super(BinaryDiceLoss, self).__init__()
+        self.smooth = smooth
+        self.p = p
+
+    def forward(self, predict, target):
+        assert predict.shape[0] == target.shape[0], "predict & target batch size don't match"
+        # predict = predict.contiguous().view(predict.shape[0], -1)
+        # target = target.contiguous().view(target.shape[0], -1)
+
+        # num = torch.sum(torch.mul(predict, target))*2 + self.smooth
+        # den = torch.sum(predict.pow(self.p) + target.pow(self.p)) + self.smooth
+
+        # dice = num / den
+        # loss = 1 - dice
+        # return loss
+        
+        smooth = 1e-5
+        intersect = torch.sum(predict * target)
+        y_sum = torch.sum(target * target)
+        z_sum = torch.sum(predict * predict)
+        dice = (2 * intersect + smooth) / (z_sum + y_sum + smooth)
+        loss = 1 - dice
+        return loss
+        
+
+class DiceLoss(nn.Module):
+    '''
+    Dice loss, need one hot encode input
+    Args:
+        weight: An array of shape [num_classes,]
+        ignore_index: class index to ignore
+        predict: A tensor of shape [N, C, *]
+        target: A tensor of same shape with predict
+        other args pass to BinaryDiceLoss
+    Return:
+        same as BinaryDiceLoss
+    '''
+    def __init__(self, weight=None, ignore_index=0, **kwargs):
+        super(DiceLoss, self).__init__()
+        self.kwargs = kwargs
+        self.weight = weight
+        self.ignore_index = ignore_index
+
+    def forward(self, predict, target):
+        assert predict.shape == target.shape, 'predict & target shape do not match'
+        
+        # print(predict.size(), target.size())
+        
+        dice = BinaryDiceLoss(**self.kwargs)
+        total_loss = 0
+        # predict = F.softmax(predict, dim=1)
+
+        for i in range(target.shape[1]):
+            if i == self.ignore_index: continue
+            dice_loss = dice(predict[:, i], target[:, i])
+            print(f'DICE LOSS FOR CLASS {i}: {dice_loss}')
+            if self.weight is not None:
+                assert self.weight.shape[0] == target.shape[1], \
+                    'Expect weight shape [{}], get[{}]'.format(target.shape[1], self.weight.shape[0])
+                dice_loss *= self.weights[i]
+            total_loss += dice_loss
+
+        return total_loss/ (target.shape[1]-1)    
     
-def test():
+    
+def test2D():
     mask = torch.tensor(np.load('data/imagechd/p_labels/0001_0135.npy')).unsqueeze(0)
     mask2 = torch.tensor(np.load('data/imagechd/p_labels/0001_0136.npy')).unsqueeze(0)
     num_classes = 8
@@ -132,3 +213,39 @@ def test():
     print(ce_loss)
 
     print(ce_loss.item()*0.2 + (1-res.item())*0.4 + ls.item()*0.4)
+    
+    
+def test3D():
+    label = sitk.GetArrayFromImage(sitk.ReadImage('data/imagechd/256_labels/0001.nii.gz')).astype(np.int64)
+    
+    # Real encoded label from train loader
+    unique_values = np.unique(label)
+    encoded_label = np.zeros((len(unique_values),) + label.shape, dtype=np.int64)
+    for i, value in enumerate(unique_values): encoded_label[i][label == value] = 1
+    
+    for clx in range(8):
+        print(encoded_label[clx, 100, 100, 100])
+    print()
+    encoded_label = torch.tensor(encoded_label).unsqueeze(0)
+        
+    # Real logits from model
+    logits = np.zeros((len(unique_values),) + label.shape, dtype=np.float32)
+    for i, value in enumerate(unique_values): 
+        logits[i][label == value] = 123
+        logits[i][label != value] = 1.7
+        
+    for clx in range(8):
+        print(logits[clx, 100, 100, 100])
+    print()
+    logits = torch.tensor(logits).unsqueeze(0)    
+    _, pred = torch.max(logits, dim=1)
+    
+    # encode the logits to make it like label
+    pred = pred[0].detach().cpu().numpy()
+    encoded_pred = np.zeros((len(unique_values),) + pred.shape)
+    for i, value in enumerate(unique_values): encoded_pred[i][pred == value] = 1
+    encoded_pred = torch.tensor(encoded_pred).unsqueeze(0)
+        
+    cost = DiceLoss()
+    loss = cost(encoded_pred, encoded_label)
+    print(loss)
