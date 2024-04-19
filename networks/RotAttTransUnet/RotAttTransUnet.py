@@ -10,9 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.modules.utils import _pair
-import ml_collections
-from configs import get_config
-from vit_resnet_skip import ResNetV2
+from .vit_resnet_skip import ResNetV2
 
 
 class Embedding(nn.Module):
@@ -90,25 +88,41 @@ class SingleAttention(nn.Module):
         r_x = torch.matmul(V.transpose(-1,-2), a)
         return r_x
     
-class RotatoryAttention(nn.Module):
+class Dense(nn.Module):
     def __init__(self, config):
         super().__init__()
-        self.single_attention = SingleAttention(config)
+        self.single_attention_target_left = SingleAttention(config)
+        self.single_attention_target_right = SingleAttention(config)
+        self.single_attention_left_target = SingleAttention(config)
+        self.single_attention_right_target = SingleAttention(config)
         
-    def forward(self, x):
-        left = x[0]
-        target = x[1]
-        right = x[2]
-        
+    def forward(self, left, right, target):        
         r_t = torch.mean(target, dim=0)
-        r_l = self.single_attention(r_t, left)
-        r_r = self.single_attention(r_t, right)
+        r_l = self.single_attention_target_left(r_t, left)
+        r_r = self.single_attention_target_right(r_t, right)
         
-        r_l_t = self.single_attention(r_l, target)
-        r_r_t = self.single_attention(r_r, target)
+        r_l_t = self.single_attention_left_target(r_l, target)
+        r_r_t = self.single_attention_right_target(r_r, target)
         
         r = torch.concat([r_l, r_r, r_l_t, r_r_t])
         return r
+    
+class RotatoryAttention(nn.Module):
+    def __init__(self, config):
+        super().__init__()
+        self.dense = Dense(config)
+        
+    def forward(self, x):
+        N = x.size(0)
+        r = []
+        for index in range(1, N-1):
+            left, target, right = x[index-1], x[index], x[index+1]
+            r.append(self.dense(left, target, right))
+        
+        r = torch.stack(r, dim=0)
+        r = torch.mean(r,  dim=0)
+        return r
+        
         
 class MultiheadAttention(nn.Module):
     def __init__(self, config, vis):
@@ -337,14 +351,14 @@ class RotAttTransUNet(nn.Module):
         )
         
     def forward(self, x):
-        encoded, a_weights, features, inter_encoded= self.transformer(x)
+        encoded, a_weights, features, inter_encoded = self.transformer(x)
         decoded = self.decoder(inter_encoded, features)
         logits = self.segmentation_head(decoded)
         return logits
     
     
-config = get_config()
-model = RotAttTransUNet(config=config, num_classes=config.num_classes).cuda()
-input = torch.rand(3,1,256,256).cuda()
-output = model(input)
-print(output.size())
+# config = get_config()
+# model = RotAttTransUNet(config=config, num_classes=config.num_classes).cuda()
+# input = torch.rand(3, 1, 256, 256).cuda()
+# output = model(input)
+# print(output.size())

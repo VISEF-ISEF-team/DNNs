@@ -59,13 +59,16 @@ class UpSampling(nn.Module):
         super().__init__()
         df = config.df
         self.up4 = UpBlockAtt(df[3]*2, df[2], nb_Conv=2)
-        self.up3 = UpBlockAtt(df[3]  , df[1], nb_Conv=2)
-        self.up2 = UpBlockAtt(df[2]  , df[0], nb_Conv=2)
+        self.up3 = UpBlockAtt(df[2]*2, df[1], nb_Conv=2)
+        self.up2 = UpBlockAtt(df[1]*2, df[0], nb_Conv=2)
         self.up1 = UpBlockAtt(df[1]  , df[0], nb_Conv=2)
     
-    def forward(self, enc1, enc2, enc3, enc4, x5):
-        x = self.up4(x5, enc4)
-        x = self.up3(x, enc3)        
-        x = self.up2(x, enc2)        
-        x = self.up1(x, enc1)
+    def forward(self, o1, o2, o3, o4, x5):
+        
+        print(x5.size(), o4.size())
+        
+        x = self.up4(x5, o4)
+        x = self.up3(x, o3)        
+        x = self.up2(x, o2)        
+        x = self.up1(x, o1)
         return x

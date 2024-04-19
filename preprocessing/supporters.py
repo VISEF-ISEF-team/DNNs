@@ -17,7 +17,7 @@ def explore_3D_array(arr: np.ndarray, cmap: str = 'gray'):
 
   def fn(SLICE):
     plt.figure(figsize=(7,7))
-    plt.imshow(arr[SLICE, :, :])
+    plt.imshow(arr[SLICE, :, :], cmap=cmap)
 
   interact(fn, SLICE=(0, arr.shape[0]-1))
   

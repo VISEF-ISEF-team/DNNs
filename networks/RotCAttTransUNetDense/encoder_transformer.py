@@ -290,7 +290,6 @@ class ChannelTransformer(nn.Module):
         super().__init__()
         
         # Extract config
-        self.config = config
         img_size = config.img_size
         df = config.df
         p = config.p

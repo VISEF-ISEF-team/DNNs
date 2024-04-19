@@ -372,7 +372,7 @@ class DecoderCup(nn.Module):
 
 
 class TransUNet(nn.Module):
-    def __init__(self, config, img_size=512, num_classes=8, zero_head=False, vis=False):
+    def __init__(self, config, img_size=256, num_classes=8, zero_head=False, vis=False):
         super(TransUNet, self).__init__()
         self.num_classes = num_classes
         self.zero_head = zero_head
@@ -389,7 +389,7 @@ class TransUNet(nn.Module):
     def forward(self, x):
         if x.size()[1] == 1:
             x = x.repeat(1,3,1,1)
-        x, attn_weights, features = self.transformer(x)  # (B, n_patch, hidden)
+        x, attn_weights, features = self.transformer(x)
         x = self.decoder(x, features)
         logits = self.segmentation_head(x)
         return logits
@@ -442,3 +442,9 @@ class TransUNet(nn.Module):
                 for bname, block in self.transformer.embeddings.hybrid_model.body.named_children():
                     for uname, unit in block.named_children():
                         unit.load_from(res_weight, n_block=bname, n_unit=uname)
+                        
+                        
+# config = r50_b16()
+# model = TransUNet(config=config, num_classes=config.n_classes).cuda()
+# input = torch.rand(3,1,256,256).cuda()
+# output = model(input)

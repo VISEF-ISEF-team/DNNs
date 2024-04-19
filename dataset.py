@@ -6,7 +6,7 @@ from scipy.ndimage import zoom
 import SimpleITK as sitk
 
 class CustomDataset(Dataset):
-    def __init__(self, image_paths, label_paths, img_size, image_ext='.npy', label_ext='.npy'):
+    def __init__(self, num_classes, image_paths, label_paths, img_size, image_ext='.npy', label_ext='.npy'):
         '''
         Args:
             image_paths: Image file paths.
@@ -30,6 +30,7 @@ class CustomDataset(Dataset):
                 ├── 0001_0003.npy
                 ├── ...     
         '''
+        self.num_classes = num_classes
         self.image_paths = image_paths
         self.label_paths = label_paths
         self.img_size = img_size
@@ -49,11 +50,16 @@ class CustomDataset(Dataset):
             image = zoom(image, (self.img_size / x, self.img_size / y), order=0)
             label = zoom(label, (self.img_size / x, self.img_size / y), order=0)
         
-        return image, label
+        encoded_label = np.zeros( (self.num_classes, ) + label.shape)
+        for i in range(self.num_classes): 
+            encoded_label[i][label == i] = 1
+        
+        return image, encoded_label
     
     
 class CustomDataset3D(Dataset):
-    def __init__(self, image_paths, label_paths, ext='.nii.gz'):
+    def __init__(self, num_classes, image_paths, label_paths, ext='.nii.gz'):
+        self.num_classes = num_classes
         self.image_paths = image_paths
         self.label_paths = label_paths
         self.ext = ext
@@ -62,15 +68,6 @@ class CustomDataset3D(Dataset):
     def __len__(self):
         return self.length
     
-    def encode(self, label):
-        unique_values, _ = np.unique(label, return_counts=True)
-        vol = []
-        for value in unique_values: 
-            label_array = np.copy(label) 
-            label_array[np.where(label_array != value)] = 0 
-            vol.append(label_array)
-        
-        vol = np.stack(vol, dim=0)
     
     def __getitem__(self, index):
         image_path = self.image_paths[index]
@@ -84,7 +81,8 @@ class CustomDataset3D(Dataset):
         image = np.transpose(image, (2, 1, 0))
         label = np.transpose(label, (2, 1, 0))
         
-        image = image[np.newaxis, :, :, :]
-        label = self.encode(label)
+        encoded_label = np.zeros( (self.num_classes, ) + label.shape)
+        for i in range(self.num_classes): 
+            encoded_label[i][label == i] = 1
         
-        return torch.from_numpy(image), torch.from_numpy(label)
+        return torch.from_numpy(image), torch.from_numpy(encoded_label)

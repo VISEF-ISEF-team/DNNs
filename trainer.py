@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from collections import OrderedDict
 from tqdm import tqdm
-from metrics import IOU
 import csv
 import sys
 
@@ -30,10 +29,10 @@ def trainer(config, train_loader, optimizer, model, ce, dice, iou):
         target = target.cuda()
         logits = model(input)
         
-        ce_loss = ce(logits, target[:].long())
+        ce_loss = ce(logits, target)
         dice_score, dice_loss, class_dice_score, class_dice_loss = dice(logits, target)
-        iou_score, class_iou =  iou(logits, target)
-        loss = 0.2 * ce_loss + 0.4 * dice_loss + 0.4 * (1 - iou_score)
+        iou_score, class_iou = iou(logits, target)
+        loss = dice_loss*0.4 + (1 - iou_score)*0.6
         
         total_ce_loss += ce_loss.item()
         total_dice_score += dice_score.item()
@@ -76,7 +75,7 @@ def trainer(config, train_loader, optimizer, model, ce, dice, iou):
     ])
     
     
-def validate(config, val_loader, model, ce, dice, iou):
+def validate(val_loader, model, ce, dice, iou):
     model.eval()
     steps = len(val_loader)
     
@@ -87,13 +86,12 @@ def validate(config, val_loader, model, ce, dice, iou):
         for input, target in val_loader:
             input = input.unsqueeze(1).cuda()
             target = target.cuda()
-        
             logits = model(input)
         
-            ce_loss = ce(logits, target[:].long())
+            ce_loss = ce(logits, target)
             dice_score, dice_loss, _, _ = dice(logits, target)
-            iou_score, _ =  iou(logits, target)
-            loss = 0.2 * ce_loss + 0.4 * dice_loss + 0.4 * (1 - iou_score)
+            iou_score, _ = iou(logits, target)
+            loss = dice_loss*0.4 + (1 - iou_score)*0.6
             
             total_ce_loss += ce_loss.item()
             total_dice_score += dice_score.item()

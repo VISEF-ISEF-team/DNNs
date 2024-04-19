@@ -7,8 +7,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from configs import get_config
-
 
 def np2th(weights, conv=False):
     # Possibly convert HWIO to OIHW
@@ -144,15 +142,11 @@ class ResNetV2(nn.Module):
         ]))
 
     def forward(self, x):
-        print(x.size())
         features = []
         b, c, in_size, _ = x.size()
         x = self.root(x)
         features.append(x)
-        
         x = nn.MaxPool2d(kernel_size=3, stride=2, padding=0)(x)
-        print(x.size()) 
-        
         for i in range(len(self.body)-1):
             x = self.body[i](x)
             
@@ -162,7 +156,6 @@ class ResNetV2(nn.Module):
                 assert 0 < pad and pad < 3, "x {} should {}".format(x.size(), right_size)
                 feat = torch.zeros((b, x.size()[1], right_size, right_size), device=x.device)
                 feat[:, :, 0:x.size()[2], 0:x.size()[3]] = x[:]
-                print(x.size())
             else:
                 feat = x
             features.append(feat)

@@ -7,7 +7,7 @@ def get_config():
     config.num_classes = 8
     config.in_channels = 1
     config.img_size    = 256
-    config.p           = [16, 8, 4, 2]
+
     
     # Rotatory attention
     config.df          = [64, 128, 256, 512]
@@ -16,8 +16,7 @@ def get_config():
     config.dq          = [64, 128, 256, 512]
     
     # Channel-wise Transformer
-    config.patches_size = [16, 8, 4, 2]
-    config.channel_nums = [64, 128, 256, 512]
+    config.p            = [16, 8, 4, 2]
     config.mlp_ratio    = 4
     config.KV_size      = 64 + 128 + 256 + 512
     

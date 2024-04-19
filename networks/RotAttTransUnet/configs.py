@@ -1,9 +1,11 @@
 import ml_collections
 
-def get_config():
+def get_config_rot_att():
     config = ml_collections.ConfigDict()
     
     # Input
+    config.patches = ml_collections.ConfigDict({'size': (16, 16)})
+    config.patches.grid = (16, 16)
     config.num_classes = 8
     config.in_channels = 1
     config.width = 256

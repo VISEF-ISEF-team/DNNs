@@ -6,3 +6,6 @@ reconstruction
 vit_checkpoint
 pretrained_ckpt
 checkpoint
+outputs
+outputs_old
+outputs_old_2

@@ -8,6 +8,9 @@ import nibabel as nib
 import torch
 from scipy.ndimage import zoom
 from metrics import Dice, IOU
+from skimage.transform import resize as skires
+import SimpleITK as sitk
+import torch.nn.functional as F
 
 # Training graphs
 def visualize(epochs, scores, legends, x_label, y_label, title, config):
@@ -19,7 +22,7 @@ def visualize(epochs, scores, legends, x_label, y_label, title, config):
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
-    plt.savefig(f"outputs/{config['name']}/graph2.jpeg")
+    plt.savefig(f"outputs/{config['name']}/graph1.jpeg")
     plt.show()
 
 def parse_args():
@@ -39,7 +42,7 @@ def plotting():
         metrics.append(df[column].tolist())
         
     iters = [i for i in range(1, (len(metrics[0])) + 1)]
-    visualize(iters, [metrics[4], metrics[2], metrics[10], metrics[8]],  [fields[4], fields[2], fields[10], fields[8]],
+    visualize(iters, [metrics[4], metrics[5], metrics[6], metrics[7]],  [fields[4], fields[5], fields[6], fields[7]],
             'Epochs', 'Scores', 'Training results', config)
     
 
@@ -58,7 +61,7 @@ def compare(gt, label):
     plt.show()
     
 def rot_val():
-    model = torch.load('outputs/imagechd_RotCAttTransUNetDense_bs12_ps16_epo65_hw128/model.pth')
+    model = torch.load('outputs\imagechd_NestedTransUnetRot_bs12_ps16_epo150_hw128\model.pth')
     vol = []
     labels = []
     for index in range(120, 132, 1):
@@ -86,13 +89,13 @@ def rot_val():
     
 def val_each(vol_index, index):
     # Input
-    model = torch.load('outputs/imagechd_NestedUNetAtt_bs12_ps16_woDS_epo100_hw256_small/model.pth')
-    input = np.load(f'data/imagechd/p_images/{vol_index:04d}_{index:04d}.npy')
-    label = np.load(f'data/imagechd/p_labels/{vol_index:04d}_{index:04d}.npy')
+    model = torch.load('outputs/imagechd_TransUNet_bs12_ps16_R50-ViT-B_16_epo150_hw128/model.pth')
+    input = np.load(f'data/imagechd/p_r_images/{vol_index:04d}_{index:04d}.npy')
+    label = np.load(f'data/imagechd/p_r_labels/{vol_index:04d}_{index:04d}.npy')
     
     # Dataloader
     x,y = input.shape
-    img_size = 256
+    img_size = 128
     input = zoom(input, (img_size / x, img_size / y), order=0)
     label = zoom(label, (img_size / x, img_size / y), order=0)
     
@@ -103,28 +106,6 @@ def val_each(vol_index, index):
     
     # detach
     pred = pred[0].detach().cpu().numpy()
-    
-    # Visualize
-    # viz_label = zoom(label, (x / img_size, y / img_size), order=0)
-    # viz_pred = zoom(pred, (x / img_size, y / img_size), order=0)
-    # compare(
-    #     viz_label,
-    #     viz_pred
-    # )
-    
-    # Dice
-    # label = torch.tensor(label).unsqueeze(0).cuda()
-    # dl = Dice(num_classes=8)
-    # ds, dl, class_ds, class_dl = dl(logits, label)
-    # print(f"DICE SCORE: {ds.item()} - DICE LOSS: {dl.item()}")
-    # print(f"CLASS-WISE DICE SCORE: \n {class_ds}")
-    # print(f"CLASS-WISE DICE LOSS: \n {class_dl}")
-    
-    # iou = IOU(num_classes=8)
-    # iou_score, class_iou = iou(logits, label)
-    # print(f"IOU SCORE: {iou_score.item()} - IOU LOSS: {1 - iou_score.item()}")
-    # print(f"CLASS-WISE IOU SCORE: \n {class_iou}")
-    
     return pred, label
 
 def save_vol(vol, path):
@@ -133,18 +114,91 @@ def save_vol(vol, path):
     nifti_file = nib.Nifti1Image(vol.astype(np.int8), affine)
     nib.save(nifti_file, path)
     
+def resize_vol(vol, new_size):
+    return skires(vol, new_size, order=1, preserve_range=True, anti_aliasing=False)
     
 def val_pipeline():
     vol = []
     label = []
-    vol_index = 1
-    model = 'NestedUNetAtt'
+    vol_index = 22
+    model = 'TransUNet'
     for index in range(1, 221+1, 1):
         slice, mask = val_each(vol_index, index)
         vol.append(slice)
         label.append(mask)
         
-    save_vol(np.array(vol), f'reconstruction/{vol_index:04d}_pred_{model}.nii.gz')
-    save_vol(np.array(label), f'reconstruction/{vol_index:04d}_label_{model}.nii.gz')
+    vol = resize_vol(np.array(vol), (128, 128, 128))
+    label = resize_vol(np.array(label), (128, 128, 128))
+    save_vol(np.array(vol), f'reconstruction/{vol_index:04d}_pred_{model}_2.nii.gz')
+    save_vol(np.array(label), f'reconstruction/{vol_index:04d}_label_{model}_2.nii.gz')
     
-val_pipeline()
+    
+def prediction(id, path):
+    image = sitk.GetArrayFromImage(sitk.ReadImage(path, sitk.sitkFloat32))
+    model_axial = torch.load('outputs/imagechd_NestedTransUnetRot_bs12_ps16_epo150_hw128/model.pth')
+    # model_sagittal = torch.load('outputs/imagechd_TransUNet_bs24_ps16_R50-ViT-B_16_epo200_hw128_sagittal/model.pth')
+    # model_coronal = torch.load('outputs/imagechd_TransUNet_bs24_ps16_R50-ViT-B_16_epo200_hw128_coronal/model.pth')
+    
+    axial_vol = []
+    sagittal_vol = []
+    coronal_vol = []
+    
+    for index in range(image.shape[0]):
+        # axial
+        slice = image[index,:,:]
+        slice = slice / np.max(slice)
+        slice = torch.tensor(slice).unsqueeze(0).unsqueeze(0).cuda()
+        output = model_axial(slice)
+        _, pred = torch.max(output, dim=1)        
+        pred = pred.squeeze(0).detach().cpu().numpy()
+        axial_vol.append(pred)
+        
+        # # sagittal
+        # slice = image[:,index,:]
+        # slice = slice / np.max(slice)
+        # slice = torch.tensor(slice).unsqueeze(0).unsqueeze(0).cuda()
+        # output = model_sagittal(slice)
+        # _, pred = torch.max(output, dim=1)        
+        # pred = pred.squeeze(0).detach().cpu().numpy()
+        # sagittal_vol.append(pred)
+        
+        # # sagittal
+        # slice = image[:,:,index]
+        # slice = slice / np.max(slice)
+        # slice = torch.tensor(slice).unsqueeze(0).unsqueeze(0).cuda()
+        # output = model_coronal(slice)
+        # _, pred = torch.max(output, dim=1)        
+        # pred = pred.squeeze(0).detach().cpu().numpy()
+        # coronal_vol.append(pred)
+        
+    
+    save_vol(np.array(axial_vol), 'reconstruction/0001_NestedTransUnetRot_new.nii.gz')
+    
+def val_rot(path):
+    model = torch.load('outputs/imagechd_NestedTransUnetRot_bs12_ps16_epo150_hw128/model.pth')
+    image = sitk.GetArrayFromImage(sitk.ReadImage(path, sitk.sitkFloat32))
+    image_tensor = torch.from_numpy(image).float().cuda()
+    segment_size = 12
+    results = []
+
+    with torch.no_grad():
+        for i in range(0, image_tensor.shape[0], segment_size):
+            # Extract segment
+            input = image_tensor[i:i+segment_size, :, :].unsqueeze(1).cuda()
+            
+            # Predict using your model
+            output = model(input)
+            _, pred = torch.max(output, dim=1)
+            
+            results.append(pred)
+
+    # Concatenate results along the first dimension
+    final_output = torch.cat(results, dim=0)
+    final_output = final_output.detach().cpu().numpy()
+    save_vol(final_output, 'reconstruction/0001_NestedTransUnetRot_new.nii.gz')
+    
+
+id = 1
+path = f'data/imagechd/128_images_axial/{id:04d}.nii.gz'
+# prediction(id, path)
+val_rot(path)

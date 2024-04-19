@@ -1,0 +1,2 @@
+python.exe train.py --network_dim 3 --epochs 100 --network UNet3D --img_size 128 --num_workers 3
+python.exe train.py --network_dim 2 --epochs 150 --type Transformer --network TransUNet --img_size 256 --num_workers 3
